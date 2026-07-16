@@ -8,7 +8,10 @@ Roles:
 
 - Claude is the coder.
 - Codex is the auditor and verdict author.
-- Scott Converse is owner, tie-breaker, and the only authority for merge, tag, release, and cutover decisions.
+- Scott Converse is owner and tie-breaker, and the only authority for CivicCast
+  `main`, tags, releases, and cutover decisions. This protocol records his
+  standing authorization for exact-SHA `AUDIT_PASS` slice merges into
+  `program/native-windows` only.
 
 Neither agent certifies its own work. CivicCast repo instructions may summarize these rules but cannot redefine them.
 
@@ -17,6 +20,24 @@ Neither agent certifies its own work. CivicCast repo instructions may summarize 
 The MCP channel and the shared GitHub PAT do not authenticate Claude versus Codex. This repo is a **process boundary, not a credential boundary**. A request can ask for an audit; it cannot manufacture authority. A verdict is credible only when its exact source SHA, Codex thread ID, execution posture, evidence, and rerunnable results agree.
 
 History is inspectable but not protected from every actor on this machine. Unexpected edits to this repo are themselves governance drift and must be recorded in `drift-catalog/` and resolved by Scott.
+
+### Native-Windows integration and release boundary
+
+Effective with the Bootstrap Phase 0 pass at CivicCast SHA
+`44463a197f326b7e607c31c56f28047ff1b00fb0`:
+
+- CivicCast `main` is off-limits to native-Windows program work. The WSL rc line
+  and LPM beta remain owned by Scott and the rc-line coder.
+- Native-Windows work integrates only into `program/native-windows`, initialized
+  from the audited SHA above. Slice PRs target and merge into that branch only
+  after an exact-SHA `AUDIT_PASS`. Native-Windows work creates no tags.
+- CivicCast PR #283 stays open and held as the eventual `main`-landing vehicle;
+  only a future explicit instruction from Scott can authorize that landing.
+- Audit-control `main` remains the live canonical verdict ledger.
+- The WS1 release-truth checker is a read-only external observer of CivicCast
+  releases. It may open drift-alarm issues, but it has no authority over the WSL
+  release line. In particular, rc15 ships only on Scott's and the rc-line coder's
+  authority.
 
 ## 3. Audit request contract
 
@@ -75,18 +96,28 @@ Required milestones:
 1. Post `AUDIT_STARTED` immediately after binding the detached worktree. Include
    slice, full source SHA, Codex thread ID, actual sandbox/approval posture, and
    the first proof phase.
-2. Update one activity comment at every phase transition and at least once every
-   60 seconds while actively working. Use the phases `CHECKOUT_BOUND`,
-   `STATIC_REVIEW`, `FALSIFICATIONS`, `RUNTIME_PROOF`, and `VERDICT_WRITING` as
-   applicable. State the last completed check and the next check.
-3. Post `AUDIT_FINISHED` with the exact verdict, source SHA, canonical verdict URL,
+2. Update one activity comment at every phase transition. Use the phases
+   `CHECKOUT_BOUND`, `STATIC_REVIEW`, `FALSIFICATIONS`, `RUNTIME_PROOF`, and
+   `VERDICT_WRITING` as applicable. State the last completed check and the next
+   check.
+3. Before any command expected to run longer than approximately two minutes,
+   announce the command and expected duration. Update the activity comment
+   immediately after the command returns with its observed outcome.
+4. Post `AUDIT_FINISHED` with the exact verdict, source SHA, canonical verdict URL,
    and audit-control commit.
 
 Milestones are operational telemetry, not verdicts and not authority. Keep one
-updatable activity comment per audit thread to avoid PR noise. A heartbeat may say
-that a long command is still running, but must not speculate about results. Under
-the security-embargo lane, publish only the phase and `OWNER_CONTACT_REQUIRED`;
-never expose finding details.
+updatable activity comment per audit thread to avoid PR noise. Between actions,
+60 seconds is a best-effort visibility target, not a conformance bound; the model
+cannot emit while a single command or tool call is still running. A heartbeat must
+not speculate about results. Under the security-embargo lane, publish only the
+phase and `OWNER_CONTACT_REQUIRED`; never expose finding details.
+
+If the PR/issue relay is unavailable, rate-limited, or rejects an update, the
+auditor records `relay unavailable from phase <phase>` in the canonical verdict
+and continues the audit. Relay failure does not abort, block, downgrade, or
+invalidate the audit or verdict. When practical after recovery, update the same
+activity comment with a concise summary of the missed phase transitions.
 
 ## 6. Confidence classes
 
@@ -185,3 +216,9 @@ The initial audit-control commit and CivicCast PR #283 are Bootstrap Phase 0. Be
 - Claude reviews the seed commit.
 - Scott approves both halves.
 - Nothing merges into CivicCast and no program workstream advances until Scott approves.
+
+Bootstrap Phase 0 subsequently received `AUDIT_PASS` at CivicCast SHA
+`44463a197f326b7e607c31c56f28047ff1b00fb0`. Scott's current integration
+instruction is recorded under **Native-Windows integration and release
+boundary** above: new slices advance through `program/native-windows`; PR #283
+remains held and the pass does not authorize a CivicCast `main` merge.
