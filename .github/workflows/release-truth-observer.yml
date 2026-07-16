@@ -1,0 +1,69 @@
+# Release-truth observer — read-only drift alarm (see observer/README.md).
+# No authority over any release; failures surface as issues in THIS repo only.
+name: release-truth-observer
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  contents: read
+
+env:
+  # Exact CivicCast commit providing the checker + manifest (WS1 slice).
+  CHECKER_PIN: 348e5b1ccce74fd13f03f76179faf8e8b5745a9f
+  CIVICCAST: scottconverse/civiccast
+
+jobs:
+  observe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch pinned checker, manifest, and live main README
+        run: |
+          set -euo pipefail
+          curl -fsSL -o check_release_truth.py \
+            "https://raw.githubusercontent.com/${CIVICCAST}/${CHECKER_PIN}/scripts/policy/check_release_truth.py"
+          curl -fsSL -o release-truth.yaml \
+            "https://raw.githubusercontent.com/${CIVICCAST}/${CHECKER_PIN}/docs/releases/release-truth.yaml"
+          curl -fsSL -o README-main.md \
+            "https://raw.githubusercontent.com/${CIVICCAST}/main/README.md"
+      - name: Run checker (read-only)
+        id: check
+        run: |
+          set +e
+          pip install --quiet pyyaml
+          python check_release_truth.py --manifest release-truth.yaml \
+            --live --readme README-main.md > drift-report.txt 2>&1
+          echo "exit_code=$?" >> "$GITHUB_OUTPUT"
+          cat drift-report.txt
+      - name: Upsert drift issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TITLE="Release-truth drift (observer)"
+          EXISTING=$(gh issue list -R "${GITHUB_REPOSITORY}" --state open \
+            --search "\"$TITLE\" in:title" --json number --jq '.[0].number // empty')
+          CODE="${{ steps.check.outputs.exit_code }}"
+          if [ "$CODE" = "0" ]; then
+            if [ -n "$EXISTING" ]; then
+              gh issue comment "$EXISTING" -R "${GITHUB_REPOSITORY}" \
+                --body "Observer run $(date -u +%Y-%m-%dT%H:%M:%SZ): PASS — drift cleared (pin ${CHECKER_PIN:0:12}). Closing."
+              gh issue close "$EXISTING" -R "${GITHUB_REPOSITORY}"
+            fi
+            exit 0
+          fi
+          BODY="Observer run $(date -u +%Y-%m-%dT%H:%M:%SZ) — checker exit ${CODE} (pin ${CHECKER_PIN:0:12}).
+
+          This is a READ-ONLY alarm with no release authority (observer/README.md).
+
+          \`\`\`
+          $(cat drift-report.txt)
+          \`\`\`"
+          if [ -n "$EXISTING" ]; then
+            gh issue comment "$EXISTING" -R "${GITHUB_REPOSITORY}" --body "$BODY"
+          else
+            gh issue create -R "${GITHUB_REPOSITORY}" --title "$TITLE" --body "$BODY"
+          fi
