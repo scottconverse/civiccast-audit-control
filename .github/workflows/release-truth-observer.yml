@@ -13,7 +13,7 @@ permissions:
 
 env:
   # Exact CivicCast commit providing the checker + manifest (WS1 slice).
-  CHECKER_PIN: 348e5b1ccce74fd13f03f76179faf8e8b5745a9f
+  CHECKER_PIN: 77ff390c713a541c25e0445748d80628147dc6f9
   CIVICCAST: scottconverse/civiccast
 
 jobs:
@@ -31,6 +31,8 @@ jobs:
             "https://raw.githubusercontent.com/${CIVICCAST}/main/README.md"
       - name: Run checker (read-only)
         id: check
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           set +e
           pip install --quiet pyyaml
