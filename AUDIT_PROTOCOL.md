@@ -33,6 +33,7 @@ The coder request must contain:
 - known gaps
 - requested `sandbox` and `approval_policy`
 - requested worktree posture
+- PR or issue URL used as the public activity relay
 
 Ambient settings are not evidence. The auditor records the actual per-call sandbox and approval policy in the verdict. If the requested posture cannot execute a required proof, the auditor changes it only within owner-authorized scope and records the change, or returns `BLOCKED`.
 
@@ -60,6 +61,32 @@ The auditor performs all applicable checks:
 - State skipped or unavailable checks and the exact confidence boundary they create.
 
 The coder's passing output is an input to the audit, not the auditor's result.
+
+### Audit activity visibility
+
+The MCP auditor runs in a separate headless conversation and cannot write directly
+into Scott's already-open Codex Desktop task. Silence in that task must therefore
+never be used as an audit status signal. The auditor emits explicit milestones to
+the request's public PR or issue, and a Codex Desktop thread heartbeat relays those
+events into Scott's task.
+
+Required milestones:
+
+1. Post `AUDIT_STARTED` immediately after binding the detached worktree. Include
+   slice, full source SHA, Codex thread ID, actual sandbox/approval posture, and
+   the first proof phase.
+2. Update one activity comment at every phase transition and at least once every
+   60 seconds while actively working. Use the phases `CHECKOUT_BOUND`,
+   `STATIC_REVIEW`, `FALSIFICATIONS`, `RUNTIME_PROOF`, and `VERDICT_WRITING` as
+   applicable. State the last completed check and the next check.
+3. Post `AUDIT_FINISHED` with the exact verdict, source SHA, canonical verdict URL,
+   and audit-control commit.
+
+Milestones are operational telemetry, not verdicts and not authority. Keep one
+updatable activity comment per audit thread to avoid PR noise. A heartbeat may say
+that a long command is still running, but must not speculate about results. Under
+the security-embargo lane, publish only the phase and `OWNER_CONTACT_REQUIRED`;
+never expose finding details.
 
 ## 6. Confidence classes
 

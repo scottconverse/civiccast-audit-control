@@ -9,8 +9,9 @@ A slice advances only when all of the following are true:
 1. The coder submits an audit request naming one exact CivicCast commit SHA, slice ID, charter gate, claims, evidence paths, exact commands, negative controls, known gaps, and requested execution posture.
 2. The auditor checks out that SHA in a separate detached worktree and records the resolved repository, SHA, dirty state, sandbox, and approval policy.
 3. The auditor reads the complete scoped diff and final state, re-runs the named falsifications and material positive proofs, and distinguishes static, worktree-runtime, service-session, hardware, and clean-machine confidence.
-4. The auditor writes exactly one canonical verdict under `verdicts/`, bound to the CivicCast SHA and Codex thread ID.
-5. Scott approves any owner gate. Neither coder nor auditor merges, tags, releases, or cuts over on its own verdict.
+4. The auditor emits the activity milestones required by `AUDIT_PROTOCOL.md` so Scott can see that the audit is active and which proof phase is running.
+5. The auditor writes exactly one canonical verdict under `verdicts/`, bound to the CivicCast SHA and Codex thread ID.
+6. Scott approves any owner gate. Neither coder nor auditor merges, tags, releases, or cuts over on its own verdict.
 
 ## Verdicts
 
