@@ -814,3 +814,105 @@ Smallest closure: define a typed body containing source SHA, claim ID, control I
 - Applied the five review lenses serially with an adversarial proof-contract pass. This is a document-only delta with no UI/runtime surface; the QA pass used executable workflow and Git-object counterexamples rather than claiming implementation proof.
 - Confidence: exact-tree static design review plus live Git/GitHub object checks and primary GitHub platform documentation. No verifier implementation, CI run, external evidence record, slice verdict, merge, or gate proof is claimed.
 - PR #292 remains only the dashboard pointer venue. No WS2 source, verdict, CI result, merge state, or gate state was reviewed or changed.
+
+## Round 6 — SDR-006 closure assessment at `7d392597`
+
+**Assessment date:** 2026-07-17
+
+**CivicCast subject:** `7d392597f1a747223ffd7ef02b831682c09bb07b` on `program/native-windows`
+
+**Compared with:** Round 5 subject `655fc9b39d3c8c77fcd8c838edf7c31f3889d1c9`
+
+**Review type:** exact Round-5 `SDR-006` closure review and v6-delta sweep; not a slice audit, not a verdict, and no gate action
+
+**Execution posture:** `sandbox=danger-full-access`, `approval_policy=never`
+
+**Detached worktree:** `C:\Users\scott\Desktop\CODE\_audit-worktrees\civiccast-specs-r6-7d392597` (clean)
+
+### Round 6 conclusion
+
+**SDR-006: PARTIALLY CLOSED.** V6 genuinely closes two important design errors: it now says the workflow contract is created by WS3 rather than falsely claiming it already exists, and it requires the JUnit producer and verifier to attest the same checked-out source SHA. It also advances external evidence from path identity to commit+blob identity and introduces cryptographic signer/reviewer concepts.
+
+Three material contract defects remain:
+
+1. `expected_jobs` still means every live workflow job, while D7 makes the verifier depend on every `expected_jobs` member. Once WS3 adds the verifier itself, the contract either requires a self-dependency or fails its own missing-live-job mutation.
+2. `keys/allowed_signers` is not pinned as an owner-controlled trust-root blob, and “referenced by an auditor review or verdict file” has no structured, signer-specific, exact-record authority check. File presence in audit-control remains forgeable through the shared PAT.
+3. D5 was not extended for `junit-meta`, DAG-cycle, wrong-blob, wrong-signer/allowlist, or fake/mismatched review-reference mutations. The new checks are specified but not given acceptance tests that prove they can fail.
+
+These are functional proof-authority defects under the owner's calibration, not wording nits.
+
+**The auditor half of ADR-0021's rung-3 review: FAIL at `7d392597f1a747223ffd7ef02b831682c09bb07b`.** ADR-0021 still incorporates a claims-evidence rule with an unsatisfiable workflow dependency and an incompletely authenticated external-review chain.
+
+**WS3 implementation: NOT UNBLOCKED against v6.** The remaining fixes change the workflow-contract schema/DAG and the root of trust for external evidence. Implementing first would bake in precisely the interfaces still under correction.
+
+### Round-5 remainder status
+
+| Round-5 remainder | Round-6 status | Assessment |
+|---|---|---|
+| One-commit producer/verifier identity | **PARTIALLY CLOSED** | Explicit PR-head checkout plus producer `junit-meta.json` and verifier equality is the correct mechanism. It is specified only for the singular `test` producer and has no D5 missing/mismatch/cross-run mutation. |
+| Workflow-contract authority and DAG | **PARTIALLY CLOSED** | The contract is correctly described as a WS3 output and D7 now attempts to await all named jobs. D2 still does not declare an unambiguous `workflow_contract` typed role, and `expected_jobs` includes the verifier by the existing live-job completeness rule, producing a cycle. |
+| External byte/review authority | **PARTIALLY CLOSED** | Commit+blob identity and signature verification are substantive progress. The allowlist trust root, exact selected record version, and auditor review/verdict reference are not independently pinned and structurally validated. |
+
+### Material findings and smallest closure
+
+#### SDR-006-D — `expected_jobs` makes the verifier depend on itself
+
+[D5 requires drift failure when the workflow contract omits a job defined by the live workflow](https://github.com/scottconverse/civiccast/blob/7d392597f1a747223ffd7ef02b831682c09bb07b/.agent-runs/native-windows/specs/spec-claims-evidence-rule.md#L112-L128). [D7 then requires the verifier to depend on every `expected_jobs` member](https://github.com/scottconverse/civiccast/blob/7d392597f1a747223ffd7ef02b831682c09bb07b/.agent-runs/native-windows/specs/spec-claims-evidence-rule.md#L129-L135). When WS3 adds the verifier job, either:
+
+- the verifier appears in `expected_jobs`, making `needs` self-referential and the workflow invalid; or
+- it is omitted, and D5's own live-job comparison declares the contract drifted.
+
+The same schema also gives only the singular `test` job a checkout attestation even though D7 now treats multiple jobs as required producers.
+
+Smallest closure: split `producer_jobs` from `run_job_inventory`. D7 depends only on the acyclic `producer_jobs` set; the verifier is explicitly forbidden there. Give each evidence-producing job its own expected artifact and checkout-attestation contract. If whole-run inventory is retained, it may include the verifier for name validation but never for its own `needs`. Add a self-in-producer-set mutation and a missing/per-producer-attestation mutation.
+
+**Blast radius:** workflow-contract schema, CI job DAG, artifact naming/download, matrix expansion, D5 completeness logic, and every same-run claim.
+
+#### SDR-006-E — signer and review-file presence do not yet establish independent authority
+
+[V6 external mode](https://github.com/scottconverse/civiccast/blob/7d392597f1a747223ffd7ef02b831682c09bb07b/.agent-runs/native-windows/specs/spec-claims-evidence-rule.md#L73-L99) requires the evidence-introducing commit to verify against audit-control `keys/allowed_signers`, then requires claims above code-review confidence to be referenced by an auditor review or verdict. The mechanics do not yet authenticate the full chain:
+
+- The current allowlist exists and documents owner authorization, but v6 does not pin its approved audit-control commit/blob. The allowlist's own introducing commit `363f1c8626f16330fee75bc3fde6e385844eba4e` verifies as the Claude coder only when trusted through the very allowlist blob it introduced (`647ce3a666236b37394f1753304d1a17c7eaf509`). Without an external/pinned owner acceptance, a later shared-PAT edit can add a key and make its own signatures pass.
+- `allowed_signers` contains both coder and auditor keys. A valid coder signature authenticates coder authorship, not independent review.
+- “Referenced by an auditor review or verdict file” specifies no canonical path or structured fields binding source SHA, claim ID, control ID, evidence commit, and evidence blob. It also does not require that review authority verify specifically as `codex-auditor@civiccast-program` (or as an owner key/decision). An unsigned file named as a review can therefore satisfy the prose rule.
+- The signature is required on the commit that “introduced” the record, while the selected commit/blob can be a later version. Authenticating the original add does not authenticate later record bytes unless records are immutable and that invariant is enforced.
+
+Smallest closure: record an owner decision that pins the exact allowed-signers commit and blob (or another immutable owner trust root), and reject any unapproved allowlist drift. Make evidence records immutable/create-only or signature-verify the exact commit whose tree supplies the selected blob. Define a canonical structured authority record that binds all source/claim/control/evidence commit/blob fields and whose authority commit verifies specifically as the auditor or owner principal; verdict references must also satisfy the existing canonical verdict protocol. Reject unsigned, coder-only, wrong-principal, wrong-record, stale-blob, modified-after-introduction, and unapproved-allowlist cases.
+
+**Owner boundary:** which keys/principals constitute evidence authority, and the pin/rotation procedure for that trust root, are governance decisions for Scott—not decisions this CivicCast source spec can silently settle.
+
+**Blast radius:** audit-control governance, key rotation/revocation, evidence record immutability, review/verdict schema, external resolver, and every non-CI confidence class.
+
+#### SDR-006-F — the new trust checks have no named red controls
+
+[D5's falsification list](https://github.com/scottconverse/civiccast/blob/7d392597f1a747223ffd7ef02b831682c09bb07b/.agent-runs/native-windows/specs/spec-claims-evidence-rule.md#L112-L128) is unchanged by v6. It still tests synthetic-merge substitution, broad external path conditions, and missing workflow jobs, but none of the mechanisms added in this revision:
+
+- missing, malformed, wrong-SHA, or different-run `junit-meta.json`;
+- producer/verifier checkout disagreement;
+- verifier present in its own producer dependency set;
+- wrong evidence blob or a post-introduction record modification;
+- unknown signer, coder signer presented as auditor, or modified/unpinned allowlist;
+- unsigned/fake auditor review, or a genuine review referencing a different evidence commit/blob.
+
+Smallest closure: add each case as its own D5 expected-red fixture and require the failure message to name the violated identity/authority edge. The implementation gate should not accept the positive path until these controls have been observed red under mutation.
+
+**Blast radius:** verifier test plan, fixture schemas, CI artifact fixtures, audit-control test repositories, and gate-3 evidence.
+
+### V6 new-finding sweep
+
+- The v6 delta changes only `spec-claims-evidence-rule.md`; no previously closed non-claims SDR or runtime companion spec regressed.
+- The Round-5 false claim that `workflow-contract.yaml` already existed is closed cleanly; absence at this design SHA is now honest and intentional.
+- The self-dependency is introduced by D7's v6 “EVERY job” change and is recorded as `SDR-006-D`.
+- The existing audit-control signer files are real, and local verification identifies the source commit as `claude-coder@civiccast-program`; the finding concerns trust-root pinning and role-specific review authority, not absence of keys.
+- No standalone prose Minor/Nit is raised.
+
+### Round 6 evidence and boundary
+
+- Resolved `origin/program/native-windows` to exact commit `7d392597f1a747223ffd7ef02b831682c09bb07b`; its sole parent is Round-5 subject `655fc9b39d3c8c77fcd8c838edf7c31f3889d1c9`.
+- Created a fresh detached worktree, verified exact `HEAD`, origin, and clean state. The complete v6 delta is one claims-spec file; `git diff --check` passed.
+- Reconciled D3, D5, and D7 as one workflow graph and constructed the unavoidable self-dependency/omission counterexample.
+- Read audit-control `keys/README.md` and `keys/allowed_signers`; verified `7d392597` locally as `claude-coder@civiccast-program`. Inspected the allowlist's introducing commit/blob and the current unsigned Round-5 review commit to test the proposed authority chain rather than trusting its labels.
+- Rechecked audit-control `AUDIT_PROTOCOL.md` sections 2 and 8: audit-control remains a process boundary, not a credential boundary, and canonical authority requires structured exact-record validation.
+- Applied the five review lenses serially with an adversarial proof-contract pass. There is no UI/runtime implementation in this document-only delta; QA consisted of Git-object/signature verification and contract counterexamples.
+- Confidence: exact-tree design review plus live Git signature/blob checks. No workflow-contract implementation, CI execution, external evidence record, signed auditor authority record, slice verdict, merge, or gate proof is claimed.
+- PR #292 remains only the dashboard pointer venue. No WS2 source, verdict, CI result, merge state, or gate state was reviewed or changed.
