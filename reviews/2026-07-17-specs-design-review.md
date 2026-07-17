@@ -916,3 +916,110 @@ Smallest closure: add each case as its own D5 expected-red fixture and require t
 - Applied the five review lenses serially with an adversarial proof-contract pass. There is no UI/runtime implementation in this document-only delta; QA consisted of Git-object/signature verification and contract counterexamples.
 - Confidence: exact-tree design review plus live Git signature/blob checks. No workflow-contract implementation, CI execution, external evidence record, signed auditor authority record, slice verdict, merge, or gate proof is claimed.
 - PR #292 remains only the dashboard pointer venue. No WS2 source, verdict, CI result, merge state, or gate state was reviewed or changed.
+
+## Round 7 — SDR-006 closure assessment at `014722f9`
+
+**Assessment date:** 2026-07-17
+
+**CivicCast subject:** `014722f9903dcd390ed718b61b00cadc71e52401` on `program/native-windows`
+
+**Compared with:** Round 6 subject `7d392597f1a747223ffd7ef02b831682c09bb07b`
+
+**Review type:** exact Round-6 `SDR-006` closure review and v7-delta sweep; not a slice audit, not a verdict, and no gate action
+
+**Execution posture:** `sandbox=danger-full-access`, `approval_policy=never`
+
+**Detached worktree:** `C:\Users\scott\Desktop\CODE\_audit-worktrees\civiccast-specs-r7-014722f9` (clean)
+
+### Round 7 conclusion
+
+**SDR-006: PARTIALLY CLOSED.** V7 removes the literal verifier self-dependency, adds exact `needs:` equality, pins an allowed-signers blob with typed roles, and names six new expected-red controls. Those are real design improvements. They do not close the complete Round-6 acceptance criteria, however: producer completeness is internally contradictory and lacks per-producer attestations; a dependent verifier can be skipped without evaluating anything; the external reviewer still does not sign a structured reference to the exact evidence bytes; and several required mutations remain unnamed.
+
+The remaining items are functional proof-authority defects under the owner's severity calibration. The mojibake/encoding regression is recorded separately as a non-blocking Minor.
+
+**The auditor half of ADR-0021's rung-3 review: FAIL at `014722f9903dcd390ed718b61b00cadc71e52401`.** ADR-0021 still incorporates a claims-evidence contract with fail-open CI execution and an incompletely bound external-review chain.
+
+**WS3 implementation: NOT UNBLOCKED against v7.** The remaining fixes change the committed workflow/trust schemas and the verifier job's execution condition. Settling them in the spec is still cheaper than redesigning the implementation.
+
+### Round-6 remainder status
+
+| Round-6 item | Round-7 status | Assessment |
+|---|---|---|
+| `SDR-006-D` producer/verifier DAG | **PARTIALLY CLOSED** | The verifier is excluded from `expected_producer_jobs`, and exact `needs:` equality closes the literal cycle. The spec still alternates between producer-only completeness and every-live-job completeness, and it gives only the singular `test` job a checkout/JUnit attestation although multiple producers are allowed. |
+| `SDR-006-E` independent external authority | **PARTIALLY CLOSED** | Pinning the signer blob and checking coder/auditor/owner roles closes the unpinned-key and wrong-role cases. No canonical structured review record binds the exact selected evidence commit/blob, later record versions remain unauthenticated by an “introducing commit” check, and the new trust-root key/role choice is not in the owner-acceptance register. |
+| `SDR-006-F` expected-red coverage | **PARTIALLY CLOSED** | Six controls were added and are directionally correct. They do not cover all Round-6 cases: malformed/missing/cross-run or per-producer metadata, skipped-producer verifier bypass, wrong evidence blob/later modification, or a correctly auditor-signed review that references different evidence. |
+
+### Material findings and smallest closure
+
+#### SDR-006-D — producer completeness and attestation remain under-specified
+
+[D3 says `expected_producer_jobs` contains producer jobs only and forbids the verifier](https://github.com/scottconverse/civiccast/blob/014722f9903dcd390ed718b61b00cadc71e52401/.agent-runs/native-windows/specs/spec-claims-evidence-rule.md#L55-L70), but [D5 says omission of “a job the live workflow defines” is drift](https://github.com/scottconverse/civiccast/blob/014722f9903dcd390ed718b61b00cadc71e52401/.agent-runs/native-windows/specs/spec-claims-evidence-rule.md#L145-L150). Read literally, D5 reintroduces the verifier-omission contradiction. Read as “producer-shaped jobs only,” no machine-readable rule defines that shape, so an omitted producer can evade the completeness comparison.
+
+The one-commit identity contract still speaks only of the singular `test` job and one `junit-meta.json`, while D7 permits every named producer and consumes generic singular JUnit/meta artifacts. The current workflow already has three test-producing job IDs (`test`, `engine`, and `nats-boundary`); two emit differently named JUnit files and one presently emits no JUnit artifact. A list of job names cannot specify which artifact/meta pair proves each producer or require each producer to attest its checkout.
+
+Smallest closure: give the contract two explicit fields: a complete `workflow_job_inventory` containing every static job ID including the verifier, and an `expected_producers` mapping keyed by producer job ID with exact JUnit artifact, metadata artifact, and checkout-attestation requirements. Compare inventory exactly to the workflow, forbid the verifier in the producer mapping, and require verifier `needs` to equal only the producer keys. Add one expected-red mutation for an unclassified live job and one for each producer missing its own artifact or attestation.
+
+**Blast radius:** workflow-contract schema, workflow parser, artifact naming/download, matrix completeness, typed registry inputs, and all same-run claims.
+
+#### SDR-006-E — the external review still does not certify exact evidence bytes
+
+[V7 pins the allowed-signers blob and role-checks review commits](https://github.com/scottconverse/civiccast/blob/014722f9903dcd390ed718b61b00cadc71e52401/.agent-runs/native-windows/specs/spec-claims-evidence-rule.md#L83-L118), which closes important identity gaps. The remaining chain is still ambiguous at the decisive edge:
+
+- “Referenced by” has no canonical review path or structured fields binding `source_sha`, `claim_id`, `control_id`, `evidence_commit`, and `evidence_blob`. A correctly auditor-signed review can therefore be resolved against the wrong or later evidence record without violating the written rule.
+- The signature check remains on the commit that introduced a record/review, while resolution is from audit-control `main`. If those paths are later modified, authenticating the original addition does not authenticate the selected blob unless create-only immutability is enforced or the exact selected commit is signature-verified.
+- The proposed `docs/claims/trust-root.yaml` chooses which keys have coder/auditor/owner authority. Round 6 identified that as Scott's governance decision. V7 does not add it to `specs/README.md`'s owner-acceptance register or require owner approval of the exact initial pin/role mapping before it can authorize evidence.
+- D2's typed input-role schema still names no explicit `workflow_contract` or `trust_root` role even though D3 says both are typed inputs. An implementer cannot tell which mandatory role must carry each blob or which omission mutation applies.
+
+Smallest closure: define a canonical immutable authority record (or extend the canonical verdict format) whose structured body binds all five source/claim/control/evidence fields; verify the signature and blob from the exact selected authority commit. Make evidence/review records create-only or validate the exact selected version rather than only the introducing commit. Add explicit `workflow_contract` and `trust_root` input roles. Put the initial key set, role mapping, and pin/rotation procedure in the owner-acceptance register; the verifier must treat it as non-authorizing until Scott accepts the exact root.
+
+**Blast radius:** claims schema, audit-control record layout, signer/role resolver, key rotation, owner governance, and every external confidence class.
+
+#### SDR-006-F — the added controls do not cover the full v7 authority graph
+
+[D5 now names six v7 controls](https://github.com/scottconverse/civiccast/blob/014722f9903dcd390ed718b61b00cadc71e52401/.agent-runs/native-windows/specs/spec-claims-evidence-rule.md#L131-L155). It still lacks expected-red cases for:
+
+- missing or malformed `junit-meta.json`, metadata from another run, and one producer lacking its own metadata/artifact;
+- a live unclassified job and an omitted producer under an objective producer mapping;
+- all producers skipped while the verifier is skipped too;
+- a selected evidence blob modified after its introducing commit;
+- a valid auditor-signed review whose structured reference points to a different evidence commit/blob;
+- a missing trust-root role, duplicate/conflicting role assignment, and an unaccepted root rotation.
+
+Smallest closure: make each case its own D5 fixture, require a diagnostic naming the violated identity edge, and mutation-test the exact implementation before accepting its positive path.
+
+**Blast radius:** verifier fixtures, workflow test fixtures, audit-control fixture repository, and gate-3 evidence.
+
+#### SDR-006-G — GitHub can skip the verifier without evaluating the claims gate
+
+[D7 makes the verifier depend on every producer](https://github.com/scottconverse/civiccast/blob/014722f9903dcd390ed718b61b00cadc71e52401/.agent-runs/native-windows/specs/spec-claims-evidence-rule.md#L159-L162) but does not require a job-level continuation condition. [GitHub's workflow contract](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#jobsjob_idneeds) skips a dependent job when a needed job fails or is skipped unless the dependent job uses an explicit condition such as `always()`. The current `ci-test.yml` producer jobs are conditional; for a fork pull request, all three conditions are false. Under v7 as written, all producers and then the verifier can be skipped, leaving no claims evaluation and no verifier failure.
+
+Smallest closure: require the verifier job to execute with an explicit fail-closed condition after all producers finish (for example, `if: ${{ always() }}`), inspect every expected producer's `needs.<job>.result`, and fail unless each required result/artifact/attestation is acceptable. Add expected-red workflow tests where one producer is skipped, one fails before artifact upload, and all producers are skipped; the verifier must execute and reject each case.
+
+**Blast radius:** CI gate semantics, fork/conditional PR behavior, artifact retrieval, run summaries, and branch-protection confidence.
+
+### Batched Minor
+
+#### SDR-006-M1 — v7 re-encoded the whole claims spec as mojibake
+
+The sole changed file now begins with a UTF-8 BOM and contains 37 visible `â…`/`Â…` mojibake sequences; the parent held ordinary Unicode punctuation. This does not alter the ASCII contract keys evaluated above, so it does not block under the owner's severity rule, but it makes the governing spec visibly damaged and inflates the logical one-file edit into a broad encoding rewrite.
+
+Batch closure: restore valid UTF-8 text without double-encoding and add a lightweight UTF-8/mojibake check for the execution-spec directory.
+
+### V7 new-finding sweep
+
+- The complete v7 delta is one file, `spec-claims-evidence-rule.md`; no non-claims companion spec or ADR text changed.
+- The literal self-dependency and untyped-signer defects are materially improved, but the complete Round-6 closure bullets are not met.
+- `SDR-006-G` is newly surfaced by reconciling D7 with GitHub's documented `needs` skip behavior and the current workflow's conditional producer jobs.
+- `docs/claims/trust-root.yaml` and `docs/claims/workflow-contract.yaml` remain absent exactly as the proposal says; their absence is not treated as an implementation defect in this design-only review.
+- The v7 commit is GitHub Verified and local SSH verification identifies `claude-coder@civiccast-program` against the current audit-control signer file.
+
+### Round 7 evidence and boundary
+
+- Fetched `origin/program/native-windows`, resolved it and the requested short SHA to exact commit `014722f9903dcd390ed718b61b00cadc71e52401`, and confirmed its sole parent is Round-6 subject `7d392597f1a747223ffd7ef02b831682c09bb07b`.
+- Created a fresh detached worktree, verified exact `HEAD`, repository origin, and clean state. The v7 delta is 71 insertions/44 deletions in one spec file; `git diff --check` passed.
+- Reconciled D2, D3, D5, and D7 against the actual three-job `ci-test.yml` and constructed producer-omission, per-producer-attestation, skipped-verifier, later-record, and wrong-evidence-reference counterexamples.
+- Verified the current audit-control allowed-signers blob is `647ce3a666236b37394f1753304d1a17c7eaf509` and contains distinct Claude coder and Codex auditor principals. No owner principal is currently present.
+- Cross-checked GitHub's primary workflow documentation: a job that `needs` a failed or skipped job is skipped unless its own condition causes it to continue. No workflow was executed because this is a proposed contract with no implementation yet.
+- Applied engineering, UX, documentation, test, and QA lenses serially with an adversarial proof-contract pass. There is no UI/runtime implementation in this document-only delta; QA used exact source/workflow state and executable Git signature/blob checks.
+- Confidence: exact-tree design review plus source-signature/blob verification and primary platform-contract reconciliation. No workflow-contract implementation, CI execution, trust-root file, external evidence record, slice verdict, merge, or gate proof is claimed.
+- PR #292 remains only the dashboard pointer venue. No WS2 source, verdict, CI result, merge state, or gate state was reviewed or changed.
