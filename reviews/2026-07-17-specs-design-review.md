@@ -1116,3 +1116,91 @@ Smallest closure: make the audit-control authority protocol/schema an explicit W
 - Applied engineering, UX, documentation, test, and QA lenses serially with an adversarial proof-contract pass. No runtime implementation exists yet; no CI workflow or authority-record parser was claimed or executed.
 - Confidence: exact-tree static design review, executable Git signature/encoding/path checks, current-workflow reconciliation, and primary GitHub workflow semantics. No claims verifier, workflow contract, trust-root file, audit-control authority protocol, runtime record, slice verdict, merge, or gate proof is claimed.
 - PR #292 remains only the dashboard pointer venue. No WS2 source, verdict, CI result, merge state, or gate state was reviewed or changed.
+
+## Round 9 - SDR-006 and authority-governance assessment at `b5a97939`
+
+**Assessment date:** 2026-07-17
+
+**CivicCast subject:** `b5a97939f08a0b49af0a53bfe667734b9731f4de` on `program/native-windows`
+
+**Compared with:** Round 8 subject `1f75c806e710f3668d4dafea1f0c800854a46fe2`
+
+**Audit-control subject:** `082dcffa5f5defd812d6e3dfff53ae3e0fbf0c6b`, introducing the coder-proposed `AUTHORITY_RECORDS.md`
+
+**Review type:** exact Round-8 `SDR-006` closure review, authority-format auditor ratification, and v9 new-finding sweep; not a slice audit, not a verdict, and no gate action
+
+**Execution posture:** `sandbox=danger-full-access`, `approval_policy=never`
+
+**Detached worktree:** `C:\Users\scott\Desktop\CODE\_audit-worktrees\civiccast-specs-r9-b5a97939` (clean)
+
+### Round 9 conclusion
+
+**SDR-006: PARTIALLY CLOSED.** V9 genuinely closes the two persisted-schema defects from Round 8: authority paths now include `control_id`, and JUnit floors now belong to each producer. D8 group 13 also covers the empty-successful producer, path-collision, and governance-format mismatch classes.
+
+The cross-repository trust edge is not complete. V9 names `AUTHORITY_RECORDS.md` but does not pin a format version, audit-control commit, or governance blob in `docs/claims/trust-root.yaml`; the owner register still contains only the signer trust-root decision. Therefore a mutable audit-control `main` document, rather than an owner-accepted exact definition, remains the apparent format root. The product spec also does not define safe claim/control path-segment grammar or reconcile its "exact commit" signature wording with the governance rule that the record's introducing commit must be auditor/owner-signed.
+
+**The auditor half of ADR-0021's rung-3 review: FAIL at `b5a97939f08a0b49af0a53bfe667734b9731f4de`.** The ADR still incorporates the claims-evidence rule, and that rule has not yet bound its new authority record class to immutable, separately owner-accepted governance bytes.
+
+**WS3 implementation: NOT UNBLOCKED against v9.** One small contract revision remains before code, trust-root files, and durable authority records depend on this schema. The authority-governance document itself is now auditor-ratified below; Scott's owner half remains pending.
+
+### Round-8 item status
+
+| Round-8 item | Round-9 status | Assessment |
+|---|---|---|
+| `SDR-006-H` authority uniqueness | **CLOSED** | `authority/<claim>/<control>/<sha>.md` is one path per logical control, with exact path/body control agreement delegated to the governance definition. |
+| `SDR-006-I` per-producer execution floors | **CLOSED** | `expected_producers.<job>.junit_collection_floor` makes each producer independently accountable; D8 group 13 makes an empty but successful producer red while other producers cannot subsidize it. |
+| `SDR-006-J` authoritative audit-control format | **PARTIALLY CLOSED** | `AUTHORITY_RECORDS.md` now gives the format an audit-control home and is auditor-ratified as amended in this round. V9 does not pin that definition's version/commit/blob, and owner acceptance of the record class is not a separate product-register item. |
+| `SDR-006-F` expected-red coverage | **PARTIALLY CLOSED** | Group 13 covers the three requested headline classes. It does not cover a tampered/unpinned governance-definition blob, unsafe/case-colliding path IDs, or a nonzero count below one producer's floor. The first two follow directly from the amended v1 trust/path contract and are material; the nonzero-below-floor case is a batched test refinement. |
+| `SDR-006-D`, `SDR-006-E` other mechanics, `SDR-006-G` | **CLOSED, no regression found** | Producer inventory/attestation, fail-closed `if: always()`, evidence byte binding, signer roles, and create-only intent remain intact. |
+
+### Auditor ratification of `AUTHORITY_RECORDS.md`
+
+The auditor **ratifies the amended authority-record v1 format** in audit-control. The Round-9 amendment:
+
+1. marks the document `AUDITOR-RATIFIED; OWNER ACCEPTANCE PENDING` and keeps it explicitly non-authorizing;
+2. separates owner acceptance of the record class from owner acceptance of the signer key set;
+3. defines format identifier `authority-record-v1` and requires the product trust root to pin the canonical repository, accepted governance commit/blob, allowed-signers blob, and signer roles;
+4. defines lowercase path-safe claim/control IDs and lowercase 40-hex source SHAs;
+5. adds the required structured `Authority format` field; and
+6. binds `Evidence commit` + `Evidence blob` to the canonical evidence path, not merely to an otherwise reachable identical blob.
+
+This is the auditor half only. The format remains non-authorizing until Scott explicitly accepts the exact v1 governance pin and the signer/role pin. This does not amend verdicts, `AUDIT_PROTOCOL.md` section 8, merge authority, release authority, or any existing gate.
+
+### Remaining material closure - bind v9 to the ratified governance root
+
+The Round-8 acceptance criterion required the product trust root to pin the authority protocol/schema version or blob. V9's D6 still pins only the audit-control URL, `keys/allowed_signers` blob, and key roles. Merely mentioning `AUTHORITY_RECORDS.md` in D8 cannot tell the verifier which historical definition Scott accepted; following mutable `main` would let a later governance edit silently change the parser's authority contract.
+
+Smallest closure:
+
+1. D6 / the planned `docs/claims/trust-root.yaml` gains `authority_records_version: authority-record-v1`, the owner-accepted audit-control commit, and the `AUTHORITY_RECORDS.md` blob ID at that commit. The verifier fetches that exact commit and checks the blob before resolving authority.
+2. The owner-acceptance register adds a distinct `Claims authority-record v1 pin` row. External claims remain cannot-check until Scott accepts both this row and the signer/role pin.
+3. D2's schema applies the amended governance ID grammar to claim/control path segments. D5 states that the authority record's introducing commit is the auditor/owner-signed commit and that the evidence blob must occupy the canonical evidence path at `Evidence commit`.
+4. D8 adds expected-red cases for a wrong governance commit/blob, unsafe or case-colliding IDs, and evidence bytes reachable only at a non-canonical path.
+
+**Blast radius:** product trust-root schema, owner-acceptance register, authority resolver, registry/control ID schema, D8 fixtures, and the first durable authority records. Fixing it before implementation avoids migration or grandfathering rules later.
+
+### Batched Minor
+
+- V9 reintroduced a UTF-8 BOM into the claims spec (`EF BB BF`) after Round 8 had explicitly restored BOM-free ASCII. No mojibake or semantic token changed, so this is a non-blocking formatting regression under the owner calibration.
+- D8 proves zero tests fail a producer's floor but does not separately exercise a positive count one below the floor. Zero already falsifies global aggregation; add the off-by-one case during implementation test authoring.
+- D3 line 87 still describes `junit_collection_floor` in the singular even though the authority is now per producer. Reconcile while implementing the workflow-contract schema.
+
+### New-finding sweep
+
+- The v9 CivicCast delta is exactly one document with 11 insertions and 3 deletions. ADR-0021 and the owner register are unchanged.
+- The authority path and floor changes do close the concrete Round-8 counterexamples; no replacement collision or aggregate-floor bypass was found for path-safe IDs.
+- The coder-proposed audit-control commit and product v9 commit are both SSH-signed by the Claude coder principal. The amended governance definition and this review will be committed by the Codex auditor principal.
+- `git diff --check` passes. The claims spec begins with a UTF-8 BOM; no runtime verifier, workflow contract, trust-root file, evidence record, or authority record exists yet, as expected for design review.
+- Engineering, documentation, test, QA, and non-visual UX/operability lenses were applied serially with an adversarial authority-graph pass. There is no UI or runtime implementation to execute in this delta.
+
+**Convergence recommendation:** one surgical v10 should converge: consume the auditor-ratified v1 pin, add the separate owner-register row, and add the three trust/path mutations. If the coder disagrees that an authority definition must be exact-byte pinned separately from signer keys, preserve both positions and take that narrow question to Scott; otherwise another implementation-free revision is cheaper than migrating records later.
+
+### Round 9 evidence and boundary
+
+- Fetched `origin/program/native-windows`, resolved it and the requested short SHA to exact commit `b5a97939f08a0b49af0a53bfe667734b9731f4de`, and confirmed its sole parent is Round-8 subject `1f75c806e710f3668d4dafea1f0c800854a46fe2`.
+- Created a fresh detached worktree, verified exact `HEAD`, expected origin, clean state, one-file delta, and successful `git diff --check`.
+- Read the full v9 claims contract, unchanged ADR-0021, owner register, actual three-producer workflow, Round-8 acceptance bullets, and audit-control proposal at exact commit `082dcffa5f5defd812d6e3dfff53ae3e0fbf0c6b`.
+- Mechanically confirmed authority paths include `control_id`, floors are per producer, and D8 has the empty-producer/path-collision/format-mismatch group. Also confirmed no authority version/commit/blob pin or separate owner-register item exists and the spec bytes contain a BOM.
+- Verified both subject commits' SSH signatures against audit-control `keys/allowed_signers`; both identify `claude-coder@civiccast-program`.
+- Confidence: exact-tree static design and governance review with executable Git/path/blob/signature checks. No implementation, CI run, authority resolution, slice verdict, merge, owner acceptance, or gate advancement is claimed.
+- PR #292 remains only the dashboard pointer venue. The WS2 audit source, verdict, CI result, merge state, and gate state were not reviewed or changed in this Round 9 design-review work.
