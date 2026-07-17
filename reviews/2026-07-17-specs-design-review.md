@@ -724,3 +724,93 @@ No standalone wording finding is raised. Residual version-label/prose nits remai
 - Applied the five review lenses serially with an adversarial proof-contract pass. There is no UI/visual runtime in this document-only delta; operator-visible degraded, uninstall, maintenance, and recovery states were reviewed as UX contracts.
 - Confidence: static/source design review with exact-SHA binding, state-machine reconciliation, a live Git ref counterexample, and primary GitHub platform documentation. No implementation, CI execution, service-session, clean-machine, hardware, LPM, slice verdict, or gate proof is claimed.
 - PR #292 remains only the dashboard pointer venue. No WS2 source, verdict, CI result, merge state, or gate state was reviewed or changed.
+
+## Round 5 — SDR-006 closure assessment at `655fc9b3`
+
+**Assessment date:** 2026-07-17
+
+**CivicCast subject:** `655fc9b39d3c8c77fcd8c838edf7c31f3889d1c9` on `program/native-windows`
+
+**Compared with:** Round 4 subject `c7022920d4e56c100287a78f4c2a233236a0667e`
+
+**Review type:** exact Round-4 `SDR-006` acceptance-criterion closure review and v5-delta sweep; not a slice audit, not a verdict, and no gate action
+
+**Execution posture:** `sandbox=danger-full-access`, `approval_policy=never`
+
+**Detached worktree:** `C:\Users\scott\Desktop\CODE\_audit-worktrees\civiccast-specs-r5-655fc9b3` (clean)
+
+### Round 5 conclusion
+
+**SDR-006: PARTIALLY CLOSED.** V5 correctly removes `GITHUB_SHA` as the PR source-head authority and adds the requested verifier-side head-check mutation. It also gives the intended workflow contract and external evidence record concrete shapes. Those are real improvements, but the three Round-4 acceptance bullets are not fully closed in the exact tree or end-to-end producer path:
+
+1. the verifier checkout is bound to the PR head, but the JUnit-producing `test` job still uses default `actions/checkout`, which GitHub resolves to the synthetic PR merge ref;
+2. the spec and commit message say `docs/claims/workflow-contract.yaml` is committed and blob-bound, but that file is absent from `655fc9b3`, D2's typed shape does not declare it, and D7 still depends only on `test`; and
+3. external records now have canonical location/repository/reachability checks, but still lack the exact blob and structured independent-review authority required by the Round-4 closure criterion.
+
+These are proof-identity and proof-authority defects, not prose precision. Under the owner's severity calibration they remain material design findings.
+
+**The auditor half of ADR-0021's rung-3 review: FAIL at `655fc9b39d3c8c77fcd8c838edf7c31f3889d1c9`.** ADR-0021 expressly ships the claims-evidence rule, whose evidence resolver remains materially incomplete.
+
+**WS3 implementation: NOT UNBLOCKED against v5.** The remaining changes affect the producer/verifier SHA contract, committed schema inputs, workflow dependency graph, and external trust root. They are cheaper to settle in the spec than redesign after implementation.
+
+### Round-4 acceptance bullets
+
+| Round-4 remainder | Round-5 status | Assessment |
+|---|---|---|
+| Same-run source identity | **PARTIALLY CLOSED** | V5 correctly selects `github.event.pull_request.head.sha` and asserts the verifier checkout equals it; the merge-SHA-substitution mutation is also named. The artifact producer is not bound to that same SHA, so the JUnit can still prove a different tree. |
+| Machine-readable expected jobs/floor | **NOT CLOSED** | A schema and path are described, but the claimed committed YAML is absent. No exact job/shard set or numeric floor exists to review, D2 does not add a `workflow_contract` typed role, and D7 does not wait for every producer whose completeness it claims to assess. |
+| Canonical external authority | **PARTIALLY CLOSED** | Canonical path, uniqueness, origin normalization, main reachability, containing commit, and path/body source-SHA checks are specified. Exact blob binding, claim/control path-body agreement, and structured independent reviewer/attestation authority remain unspecified. |
+
+### Material findings and smallest closure
+
+#### SDR-006-A — the verifier and evidence producer can bind different commits
+
+[V5 D3 binds only the verifier's checkout to the PR head](https://github.com/scottconverse/civiccast/blob/655fc9b39d3c8c77fcd8c838edf7c31f3889d1c9/.agent-runs/native-windows/specs/spec-claims-evidence-rule.md#L39-L59). The current trusted workflow's JUnit producer uses [`actions/checkout@v4` without a `ref`](https://github.com/scottconverse/civiccast/blob/655fc9b39d3c8c77fcd8c838edf7c31f3889d1c9/.github/workflows/ci-test.yml#L35-L39). GitHub's `pull_request` contract says that default checkout is the PR merge branch. Therefore this all-green counterexample remains possible:
+
+1. head is `H`; synthetic merge commit is `M`;
+2. `test` checks out `M` and produces JUnit;
+3. verifier checks out `H`, proves `HEAD == H`, and consumes the same-run JUnit;
+4. the result is labeled for `H` even though the test artifact exercised `M`.
+
+Smallest closure: bind **every evidence-producing job** to the declared `source_sha`, record `git rev-parse HEAD` in each artifact envelope, and require the verifier to compare it. If merge-result testing is intentionally retained, bind and label both `source_head_sha` and `merge_sha` rather than treating one as the other. Add the exact producer=`M`/verifier=`H` mutation and require red.
+
+**Blast radius:** trusted workflow checkout configuration, JUnit envelope/schema, verifier logic, workflow-contract schema, and every same-run claim/control.
+
+#### SDR-006-B — the workflow authority claimed by v5 does not exist in the commit
+
+The [commit changes exactly one file](https://github.com/scottconverse/civiccast/commit/655fc9b39d3c8c77fcd8c838edf7c31f3889d1c9): `spec-claims-evidence-rule.md`. Both Git and the GitHub commit API confirm that `docs/claims/workflow-contract.yaml` is absent. Thus there is no blob ID, exact job/shard set, or numeric `junit_collection_floor` to validate. This directly falsifies the spec's “committed, registry-referenced document” statement and the commit message's delivery claim.
+
+The prose contract is also incomplete on its own: [D2's typed mapping](https://github.com/scottconverse/civiccast/blob/655fc9b39d3c8c77fcd8c838edf7c31f3889d1c9/.agent-runs/native-windows/specs/spec-claims-evidence-rule.md#L23-L38) still lists only the trusted workflow file, while [D7](https://github.com/scottconverse/civiccast/blob/655fc9b39d3c8c77fcd8c838edf7c31f3889d1c9/.agent-runs/native-windows/specs/spec-claims-evidence-rule.md#L108-L113) waits only for `test`. GitHub `needs` guarantees completion only for the jobs it names; it cannot establish whole-workflow or other-producer completeness from that dependency.
+
+Smallest closure: commit the promised YAML with concrete workflow path, YAML job IDs plus expanded matrix-shard identities, producer set, and numeric floor; add it as an unambiguous typed input with its blob ID; reconcile `schema` as one actual role shape; and make the verifier depend on every declared producer (or explicitly narrow the contract to the producers it awaits). Mutation-test missing job, missing shard, reduced floor, blob drift, and an incomplete producer dependency graph.
+
+**Blast radius:** claims registry schema and entries, trusted workflow DAG, matrix expansion, artifact collection, and D5 mutation suite.
+
+#### SDR-006-C — canonical external location is not yet independent authority
+
+[V5 external mode](https://github.com/scottconverse/civiccast/blob/655fc9b39d3c8c77fcd8c838edf7c31f3889d1c9/.agent-runs/native-windows/specs/spec-claims-evidence-rule.md#L60-L78) closes path selection, normalized repository identity, uniqueness, and committed-object reachability. It does not close the authoritative protocol's process-versus-credential distinction: a record pushed to audit-control `main` through the shared PAT is not independently authoritative merely because an ancestor commit is reachable.
+
+The record body does not require `claim_id`, `control_id`, reviewing authority, review/thread or attestation identity, decision, audit-control blob ID, or a 40-hex commit-object check. Only source SHA must agree with the path. A record can therefore be copied between control paths, or be coder-authored and committed, while satisfying the written resolution rule. “Reachable from main HEAD” also leaves a deleted/superseded historical record ambiguous unless the exact canonical blob and disposition are selected.
+
+Smallest closure: define a typed body containing source SHA, claim ID, control ID, observation fields, confidence class, independent reviewer/attestation identity, review decision/reference, audit-control commit, and blob ID. Validate all three path/body IDs; require the commit to be a 40-hex commit object reachable from the expected main; resolve the canonical blob at that commit and reject a tombstoned/superseded record; fail closed on missing, duplicate, wrong-blob, wrong-authority, or ambiguous records. Add path/body claim-ID and control-ID swaps, coder-only authority, wrong blob, non-commit object, and deleted-record mutations.
+
+**Blast radius:** audit-control evidence schema/location, external resolver, confidence-class policy, attestations, and all non-CI-safe controls.
+
+### V5 new-finding sweep
+
+- The v5 delta changes only `spec-claims-evidence-rule.md`; no non-claims SDR or companion runtime spec regressed.
+- The missing `workflow-contract.yaml` is a new exact-tree claim mismatch and is folded into `SDR-006-B`, not treated as a wording nit.
+- The producer/verifier split is exposed by v5's new verifier-only checkout assertion and is folded into `SDR-006-A`.
+- The external canonical-path changes introduce no separate path-traversal finding: “non-canonical path” can cover that implementation requirement, provided the implementation enforces normalized containment and a restricted claim/control-ID grammar. This remains an implementation acceptance detail, not a new design blocker.
+- No standalone Minor/Nit is raised.
+
+### Round 5 evidence and boundary
+
+- Resolved `origin/program/native-windows` and the requested abbreviation to exact commit `655fc9b39d3c8c77fcd8c838edf7c31f3889d1c9`; its sole parent is Round-4 subject `c7022920d4e56c100287a78f4c2a233236a0667e`.
+- Created a fresh detached worktree, verified exact `HEAD`, origin, and clean state. `git diff --check` passed.
+- Read the complete one-file v5 diff and final claims spec. Local `git ls-tree`, `git diff-tree`, repo-wide grep, and GitHub's commit API independently show no `docs/claims/workflow-contract.yaml` at the audited SHA.
+- Traced the actual JUnit producer: `.github/workflows/ci-test.yml` uses default `actions/checkout@v4`. [GitHub documents that a `pull_request` default checkout uses the synthetic merge branch](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#pull_request), while `jobs.<job_id>.needs` waits only for the jobs named in `needs`.
+- Reconciled external authority against audit-control `AUDIT_PROTOCOL.md` sections 2 and 8 and the exact Round-4 smallest-closure bullets.
+- Applied the five review lenses serially with an adversarial proof-contract pass. This is a document-only delta with no UI/runtime surface; the QA pass used executable workflow and Git-object counterexamples rather than claiming implementation proof.
+- Confidence: exact-tree static design review plus live Git/GitHub object checks and primary GitHub platform documentation. No verifier implementation, CI run, external evidence record, slice verdict, merge, or gate proof is claimed.
+- PR #292 remains only the dashboard pointer venue. No WS2 source, verdict, CI result, merge state, or gate state was reviewed or changed.
