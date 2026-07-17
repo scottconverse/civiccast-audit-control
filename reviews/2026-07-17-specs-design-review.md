@@ -1266,3 +1266,66 @@ The v10 contract does not yet implement the ratified format exactly. Its full-pa
 - Engineering, documentation, test, QA, and non-visual UX/operability lenses were applied serially with an adversarial authority-graph pass. There is no verifier implementation, generated trust-root file, runtime authority record, or CI execution in this design-only delta.
 - Confidence: exact-tree static design/governance review with executable Git object, signature, encoding, and regex checks. No slice verdict, merge, owner acceptance, or gate advancement is claimed.
 - PR #292 remains only the dashboard pointer venue. The WS2 audit source, verdict, CI result, merge state, and gate state were not reviewed or changed in this Round 10 design-review work.
+
+## Round 11 - SDR-006 closure assessment at `8fcc3cee`
+
+**Assessment date:** 2026-07-17
+
+**CivicCast subject:** `8fcc3cee7226f30b9a122206754344f366ff79f2` on `program/native-windows`
+
+**Compared with:** Round 10 subject `95fa8048056b1467122701078f7b1aee5444353b`
+
+**Governance authority:** auditor-ratified `AUTHORITY_RECORDS.md` at audit-control commit `05f78d89787990a2355fa319a520ea6c821993fd`, blob `d6944d08d5870a60df5ae912aa8cfc62c2f4e047`
+
+**Review type:** exact Round-10 acceptance-criterion closure and v11 new-finding sweep; not a slice audit, not a verdict, and no gate action
+
+**Execution posture:** `sandbox=danger-full-access`, `approval_policy=never`
+
+**Detached worktree:** `C:\Users\scott\Desktop\CODE\_audit-worktrees\civiccast-specs-r11-8fcc3cee` (clean)
+
+### Round 11 conclusion
+
+**SDR-006: PARTIALLY CLOSED.** V11 genuinely closes the abbreviated literal pin, the valid dot/underscore and 128/129 boundaries, the positive-below-floor control, and the v10 byte-only wording. The ratifying commit and governance blob resolve exactly to the auditor-signed authority-record-v1 definition.
+
+One functional trust-boundary defect remains unchanged: D5 still verifies the signature `ON THAT EXACT COMMIT` without requiring the commit that first introduced the canonical authority path. A record introduced by a coder commit could therefore appear unchanged in a later auditor-signed commit and be treated as auditor-authorized. V11 also continues to name snake_case concepts instead of the required structured fields and describes canonical-path binding as authority path/body equality without explicitly requiring the evidence blob at the canonical evidence path. These are the precise semantics Round 10 required D5 to state.
+
+The grammar contract is also internally inconsistent: D6 says the quoted regex enforces the canonical grammar, but that regex accepts `..`; D8 separately requires `..` to be rejected. The ratified definition is a segment regex plus an explicit forbidden-spelling rule, not the regex alone.
+
+**The auditor half of ADR-0021's rung-3 review: FAIL at `8fcc3cee7226f30b9a122206754344f366ff79f2`.** ADR-0021 incorporates this claims rule, and its authority edge still permits an implementation that verifies the wrong commit in the record history.
+
+**WS3 implementation: NOT UNBLOCKED against v11.** The remaining change is narrow, but it is functional provenance logic rather than prose polish. Owner acceptance of the authority-record row should remain pending until the product contract and mutations require the exact v1 resolution algorithm.
+
+### Round-10 closure status
+
+| Round-10 requirement | Round-11 status | Assessment |
+|---|---|---|
+| Full 40-hex governance pin | **PARTIALLY CLOSED** | D6 now carries the full correct commit and exact correct blob. It still does not require the generated trust-root schema to reject abbreviated or otherwise malformed object IDs. |
+| Exact claim/control ID grammar | **PARTIALLY CLOSED** | Dot, underscore, 128, and 129 behavior now agree. The displayed regex still accepts `..`, while D8 says `..` must reject; D6 does not state the required second forbidden-spelling check. |
+| Authority-record introducing-commit authentication | **NOT CLOSED** | The D5 sentence is unchanged and verifies an ambiguous selected commit, not necessarily the commit that added the authority path. |
+| Exact structured fields | **NOT CLOSED** | D5 still lists `source_sha`, `claim_id`, `control_id`, `evidence_commit`, and `evidence_blob` rather than requiring the exact `Authority format`, `Claim`, `Control`, `Source SHA`, `Evidence commit`, `Evidence blob`, and `Assessment` fields defined by authority-record-v1. |
+| Canonical evidence path plus byte binding | **PARTIALLY CLOSED** | V11 now says both bindings, and D5/D8 elsewhere name the evidence path. The edited sentence calls authority path/body equality the canonical-path binding; it does not say the canonical evidence path at `Evidence commit` must resolve to `Evidence blob`, which is the v1 rule. |
+| Matching expected-red controls | **PARTIALLY CLOSED** | Wrong governance commit and the listed grammar boundary cases are added. Still missing are a malformed/abbreviated pin control and the explicit same-bytes-only-at-noncanonical-evidence-path control. |
+
+### Smallest material closure
+
+1. D5 requires the canonical authority path to be added exactly once, locates the commit that introduced that path, and verifies that introducing commit against an auditor/owner role. A later signed commit cannot confer authority retroactively.
+2. D5 names the exact authority-record-v1 structured fields and states that `evidence/<source-sha>/<claim-id>/<control-id>.json` at `Evidence commit` must resolve to `Evidence blob`; both the path and bytes are checked.
+3. D6 states the full grammar as the segment regex **plus** explicit rejection of `..`, slash, backslash, percent escape, uppercase, empty, and non-canonical spellings. The generated trust-root schema requires full lowercase 40-hex commit/blob IDs.
+4. D8 adds expected-red controls for an abbreviated/malformed governance pin, a coder-introduced record merely inherited by a later auditor-signed commit, and identical evidence bytes present only at a non-canonical path.
+
+**Blast radius:** authority-history resolver, structured-field parser, trust-root schema, and their D8 fixtures. No implementation or durable authority record exists yet, so this remains a small pre-implementation correction.
+
+### Batched Minor
+
+- The D6 inline-code span includes explanatory prose inside the backticks, so the displayed value is not a copyable regex. Separate the regex from its explanation while making the grammar rule explicit.
+- D3 retains the singular `junit_collection_floor` sentence. The surrounding producer-specific contract is clear.
+
+### New-finding sweep and evidence boundary
+
+- V11 changes exactly one file: 11 insertions and 8 deletions in the claims spec. The owner register, ADR-0021, and every non-claims execution spec are unchanged.
+- `git diff --check` passes. The claims spec remains BOM-free, and its filter-aware working blob equals the committed blob.
+- The v11 source commit verifies locally against the Claude coder key; the pinned governance commit verifies against the Codex auditor key. The pinned governance blob matches exactly.
+- Executable regex checks produced: valid one-character/dot/underscore/128-character paths = accepted; 129-character/uppercase/percent paths = rejected; `..` = accepted by the declared regex, contradicting D8's required rejection.
+- Engineering, documentation, test, QA, and non-visual UX/operability lenses were applied serially with an adversarial authority-history pass. No verifier implementation, generated trust-root file, authority record, or runtime CI proof exists in this design-only delta.
+- Confidence: exact-tree static design/governance review with executable Git object, signature, encoding, history-contract, and regex checks. No slice verdict, merge, owner acceptance, or gate advancement is claimed.
+- PR #292 remains only the dashboard pointer venue. The WS2 audit source, verdict, CI result, merge state, and gate state were not reviewed or changed in this Round 11 design-review work.
