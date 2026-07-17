@@ -312,3 +312,178 @@ Confidence achieved: static/source design review plus one developer-machine adve
 - The playbook preserves exact-SHA audits, canonical verdict authority, and honest CI/proof language.
 
 Those strengths are worth keeping while the functional contracts above are repaired.
+
+---
+
+## Round 2 — closure assessment at `397dad2c`
+
+**Assessment date:** 2026-07-17
+
+**CivicCast subject:** `397dad2c579328aa09479692606231253c172435` on `program/native-windows`
+
+**Compared with:** Round 1 subject `8fd3fa2fc9521e28cf4b0d3fc9897bea7a5d9c6a`
+
+**Review type:** exact acceptance-criterion closure review; not a slice audit, not a verdict, and no gate action
+
+**Execution posture:** `sandbox=danger-full-access`, `approval_policy=never`
+
+**Detached worktree:** `C:\Users\scott\Desktop\CODE\_audit-worktrees\civiccast-specs-design-review-r2-397dad2c` (clean)
+
+### Round 2 conclusion
+
+The revision is a substantial improvement, but it does **not** genuinely close all Round 1 acceptance criteria.
+
+| Status | Count |
+|---|---:|
+| CLOSED | 2 |
+| PARTIALLY CLOSED | 9 |
+| NOT CLOSED | 0 |
+
+Material gaps remain in dual-runtime exclusion, supervisor security, worker command delivery, cross-uninstall behavior, upgrade recovery, claims authority, migration freeze/inventory, and credential protection. `SDR-011` also retains several wording/path items, but those remain batched Minor work under the owner severity decision.
+
+**The auditor half of ADR-0021's rung-3 review does not pass at `397dad2c`.** The owner half remains Scott's merge, but there is not yet an auditor pass for him to pair with it. In particular, ws3 claims-evidence implementation should not start against this v2 contract unchanged; the `SDR-006` items below alter the verifier's trust model and tests.
+
+### Closure matrix
+
+| Finding | Round 2 status | What the revision genuinely closes | What remains |
+|---|---|---|---|
+| SDR-001 | **PARTIALLY CLOSED** | Installed WSL is distinguished from active WSL; the decision table is singular; co-install is conditioned on an owner-landed WSL patch; cutover interruption and both keeper start orders are named. | The mutex is held by the Windows keeper, not the enabled in-distro systemd service. That service can start without the keeper, or outlive a crashed keeper. Native then relies on a 30-second poll, permitting a double-transmit window; a probe error explicitly starts native. The WSL service itself still lacks the required refusal. |
+| SDR-002 | **PARTIALLY CLOSED** | Per-command impersonation/authorization, administrator-only mutations, Job Object containment, singleton intent, graceful-stop contracts, frame caps, command serialization, and supervisor-death tests are now specified. | The supervisor pipe has no explicit DACL/remote-access contract. `FILE_FLAG_FIRST_PIPE_INSTANCE` detects a pre-existing first instance but does not make pre-creation “squat-proof”; the legitimate service receives `ERROR_ACCESS_DENIED`. Recovery/availability and named-object security descriptors remain unspecified. |
+| SDR-003 | **PARTIALLY CLOSED** | Worker ownership correctly stays with `GstPlayoutStrategy`; the Windows change is scoped to FIFO-to-named-pipe transport; real strategy-path multichannel/reload/swap/caption tests are required. | The original closure required request IDs, acknowledgements, errors, reconnect, and restart replay. V2 deliberately retains the one-way line protocol. A successful pipe write is not proof the worker applied the command, and broken-pipe retry does not resolve lost/duplicated commands. |
+| SDR-004 | **PARTIALLY CLOSED** | Native now has a distinct per-machine identity, hooks, ARP entry, install root, update channel, and both-order coexistence/cross-uninstall matrix. | The new “selector untouched” uninstall rule can orphan ownership: uninstall native while `ActiveRuntime=native` and the remaining patched WSL product refuses; the reverse occurs for `wsl`. Reporting the orphan after uninstall does not preserve an operable station. |
+| SDR-005 | **PARTIALLY CLOSED** | Rollback now restores a real WS2 backup; incompatible-schema, phase journal, power-loss, health-failure, and schema-failure controls are named. | The sequence takes the backup before stopping writers, and explicitly accepts losing writes between backup and failure. Stop/freeze must precede the recovery point and remain held. The journal also needs normative bindings to old/new version, schema revisions, verified backup identity/hash, and defined rollback-restore failure handling. |
+| SDR-006 | **PARTIALLY CLOSED** | Strong-claim markers are enforceable in a governed set; ancestry is replaced by exact binding plus blob identities; JUnit repo/workflow/run/attempt/head fields and key falsifications are named. | The spec does not require the minimum bound input set, so a registry entry can omit its prose, code module, test, verifier/schema, workflow, or evidence generator. It does not prove expected-matrix completeness. Non-CI controls are supported by a self-reported `last_executed` mapping rather than a hashed/provenanced command artifact, and a missing current control may merely “degrade” while the claim still passes. |
+| SDR-007 | **PARTIALLY CLOSED** | Full-file SHA-256 replaces sampling; `/MIR` is removed; destination must be empty; resume records gain identities/hashes/postconditions; NATS discard is owner-gated after inventory; interruption/disk/path/ACL controls are named. | “Stop ALL services” conflicts with needing PostgreSQL live for `pg_dump`, and the freeze has no durable interlock that prevents or records a transient service restart. A final current-process check can miss start-write-stop. Config/secrets inventory still trusts the bootstrap write list instead of the runtime read set plus operator-added/external configuration. |
+| SDR-008 | **CLOSED** | The design now covers pinned publisher artifacts, clean derivation, static/dynamic/resource closure, signed-manifest trust, representative packaged-tree paths, real encoder probing, per-file provenance/license mapping, and an owner evidence memo for OpenH264/FFmpeg. | No Round 1 design acceptance item remains. Implementation must still verify publisher signatures/checksums and prove every named negative control; this closure is design-only. |
+| SDR-009 | **PARTIALLY CLOSED** | Firewall, UNC, ACL audit, authenticated JetStream readiness, dependency transitions, two full pristine class-6 matrices, and clean-image provenance are explicit. | Credential AC-S2 presents machine-scope DPAPI **or** restrictive file ACL as interchangeable. Microsoft documents that any user on the same computer can decrypt `CRYPTPROTECT_LOCAL_MACHINE` data. A service-only or file ACL remains mandatory; machine scope alone cannot satisfy the non-admin denial criterion. |
+| SDR-010 | **CLOSED** | Decision states, owner-acceptance register, LocalSystem/legal/NATS/downtime boundaries, parallel-ship posture, future owner sunset, ADR merge authority, and auditor-versus-owner authority are now explicit. | No material Round 1 acceptance item remains. Owner acceptance is still pending by design. |
+| SDR-011 | **PARTIALLY CLOSED** | `taskkill`/“SIGTERM-equivalent” was replaced with per-child mechanisms, and authority/decision-state wording was corrected. | ADR-0021 still says “Zero porting cost; no fork” although the supervisor spec now requires worker/strategy Windows branches; still asserts footprint/failure surface shrink before measurement; and still uses nonexistent root paths `specs/...` instead of `.agent-runs/native-windows/specs/...`. These remain batched Minor unless used as decision evidence. |
+
+### Detailed acceptance checks
+
+#### SDR-001 — bidirectional exclusion
+
+The retained-distro contradiction and the old ambiguity-table contradiction are fixed in [guard D2-D3](https://github.com/scottconverse/civiccast/blob/397dad2c579328aa09479692606231253c172435/.agent-runs/native-windows/specs/spec-dual-runtime-guard.md#L14-L36). The prerequisite language is also correctly promoted in [D6](https://github.com/scottconverse/civiccast/blob/397dad2c579328aa09479692606231253c172435/.agent-runs/native-windows/specs/spec-dual-runtime-guard.md#L49-L56).
+
+The continuous/atomic acceptance item is not met. The current WSL installation enables `civiccast.service` with `Restart=always`; starting the distro by any route can start the service independently of the patched Windows keeper. The revision assigns the mutex only to that keeper. If the keeper dies while the systemd service continues, the mutex is abandoned and can be acquired by native even though WSL remains active. Microsoft also cautions that an abandoned mutex means the protected resource may be indeterminate; treating it as acquired-with-log is not sufficient without proving the old transmitter is gone ([Microsoft mutex documentation](https://learn.microsoft.com/en-us/windows/win32/sync/mutex-objects)).
+
+Smallest closure: put the selector/ownership refusal in the WSL service startup path itself (for example, an owner-reviewed `ExecCondition`/`ExecStartPre` plus a lifetime mechanism tied to the transmitting service), fail before transmission when authority cannot be checked, and test direct distro/service starts, keeper crash while service stays alive, and probe failure—not only keeper start orders.
+
+#### SDR-002 — supervisor security and ownership
+
+Job containment, per-command authorization, explicit storage ACLs, graceful stops, and the major negative controls are present in [supervisor D3-D7](https://github.com/scottconverse/civiccast/blob/397dad2c579328aa09479692606231253c172435/.agent-runs/native-windows/specs/spec-supervisor.md#L31-L80) and [AC-N1 through AC-N5](https://github.com/scottconverse/civiccast/blob/397dad2c579328aa09479692606231253c172435/.agent-runs/native-windows/specs/spec-supervisor.md#L116-L126).
+
+Two security details remain:
+
+1. Define the actual supervisor-pipe security descriptor, including local-only intent/`NETWORK` denial and narrowly assigned create-instance rights. Microsoft notes that a default named-pipe descriptor grants read access to Everyone and anonymous, and that `FILE_GENERIC_WRITE` includes `FILE_CREATE_PIPE_INSTANCE` ([named-pipe security](https://learn.microsoft.com/en-us/windows/win32/ipc/named-pipe-security-and-access-rights)).
+2. Rename and repair AC-N2. `FILE_FLAG_FIRST_PIPE_INSTANCE` makes a later instance fail with `ERROR_ACCESS_DENIED`; it does not evict a rogue first server or keep the legitimate service available ([CreateNamedPipeW](https://learn.microsoft.com/en-us/windows/win32/api/namedpipeapi/nf-namedpipeapi-createnamedpipew)). Client server-identity verification prevents sending commands to the rogue endpoint, but the service still needs a specified fail-closed recovery/diagnostic path and a real pre-creation test.
+
+Apply equally explicit security descriptors to the global singleton/runtime mutexes so an unprivileged local process cannot forge ownership or hold the station offline.
+
+#### SDR-003 — worker command transport
+
+Preserving egress-daemon ownership is the right correction. It removes the Round 1 double-owner problem and correctly scopes the platform seam in [supervisor D2](https://github.com/scottconverse/civiccast/blob/397dad2c579328aa09479692606231253c172435/.agent-runs/native-windows/specs/spec-supervisor.md#L12-L30).
+
+The exact command-delivery acceptance item remains. The current strategy returns success after `os.write`; the worker logs application/failure later with no acknowledgement path. V2 says the line protocol remains unchanged, so it still cannot distinguish “written,” “parsed,” and “applied.” Specify a versioned envelope with command ID and result acknowledgement, bounded retry/idempotency rules, reconnect behavior, and replay policy for reload/swap/caption/stop—or explicitly narrow the product guarantee and obtain owner acceptance for command loss. Then mutation-test lost response, duplicate delivery, worker restart between write/apply, and reconnect with multiple channels.
+
+#### SDR-004 — side-by-side installer identity
+
+The distinct product identity and both-order lifecycle matrix in [installer D1](https://github.com/scottconverse/civiccast/blob/397dad2c579328aa09479692606231253c172435/.agent-runs/native-windows/specs/spec-installer-lifecycle.md#L10-L23) close the original bundle-identity and inherited-hook defects.
+
+The new selector-orphan behavior is functional. Required state table:
+
+| Before uninstall | Action | V2 resulting state |
+|---|---|---|
+| both installed, `ActiveRuntime=native` | uninstall native | WSL remains but its patched guard refuses native ownership |
+| both installed, `ActiveRuntime=wsl` | uninstall WSL | native remains but D3 refuses while selector is `wsl` |
+
+Smallest closure: block removal of the active product until an explicit, successful cutover/rollback transfers ownership, or offer that transfer as a separately acknowledged transaction before uninstall. Prove the remaining product is operable—not merely byte-unchanged—after every cross-uninstall row.
+
+#### SDR-005 — upgrade recovery
+
+Database restore and incompatible-schema falsification are now real design elements in [installer D3](https://github.com/scottconverse/civiccast/blob/397dad2c579328aa09479692606231253c172435/.agent-runs/native-windows/specs/spec-installer-lifecycle.md#L29-L43).
+
+The recovery point is ordered incorrectly: backup occurs at step 2, service stop at step 3, and writes in between are knowingly discarded after failure. Stop/drain all writers first, prove quiescence, take and verify the backup, then keep the freeze through schema migration/health commit. The phase journal must bind old/new product versions, pre/post schema revisions, backup manifest/blob identity, verification result, and rollback outcome. Add an injected restore failure after the incompatible migration; “installer resumes” is not a defined recovery if the recovery operation itself fails.
+
+#### SDR-006 — claims authority
+
+The marker approach and wrong-SHA/skip/blob/malformed controls are meaningful improvements in [claims D1-D5](https://github.com/scottconverse/civiccast/blob/397dad2c579328aa09479692606231253c172435/.agent-runs/native-windows/specs/spec-claims-evidence-rule.md#L12-L50).
+
+Before ws3 implementation, require these schema invariants:
+
+- `inputs` must include, at minimum, the `where` file, code-defining module, test file, verifier and schema, evidence generator, trusted workflow definition, and any claim-specific fixtures/configuration;
+- JUnit provenance must validate the expected job/matrix shards and collection floor, not only one passing node in one artifact;
+- every required negative control must have a durable artifact containing exact command, environment/tool versions, timestamps, exit status, stdout/stderr hash, source SHA, input blob IDs, and provenance; editing `last_executed.result` is not proof; and
+- a claim may exit 0 only at the confidence class its required current controls support. Missing current controls fail or produce a non-pass status consumed by the claims gate—not an informational degradation beside a green claim.
+
+Add the Round 1 mutations that remain absent: omit the test/verifier/workflow from `inputs`, mutate the test after JUnit, remove a matrix shard, and forge `last_executed` without an execution artifact.
+
+#### SDR-007 — migration integrity
+
+The revision correctly adopts full hashes, non-destructive destination handling, evidence-bound resume, and an owner-gated stream decision in [migration D1-D7](https://github.com/scottconverse/civiccast/blob/397dad2c579328aa09479692606231253c172435/.agent-runs/native-windows/specs/spec-migration-contract.md#L12-L53).
+
+The coherent-snapshot contract still needs an enforceable freeze:
+
+- say explicitly that application publishers/workers stop while PostgreSQL stays up solely for the migration connection; “stop ALL CivicCast services” is otherwise executable as “stop the database before pg_dump”;
+- install a maintenance/freeze interlock honored by every app/keeper/service start path, with a journaled generation/owner, rather than relying on a final current-process observation that misses a transient start-write-stop; and
+- inventory config/secrets from actual runtime readers, service/unit environment files, operator overrides, and external paths. The installer's historical write list is a seed, not an authoritative read set.
+
+Falsify a service that starts, writes, and exits before the final check; an operator-added config file outside the bootstrap list; source mutation during full hashing; and a resume after source/destination identity reuse with changed content.
+
+#### SDR-008 — packaging closure
+
+**CLOSED.** [Packaging D1-D6](https://github.com/scottconverse/civiccast/blob/397dad2c579328aa09479692606231253c172435/.agent-runs/native-windows/specs/spec-packaging-closure.md#L11-L56) and [AC1-AC8](https://github.com/scottconverse/civiccast/blob/397dad2c579328aa09479692606231253c172435/.agent-runs/native-windows/specs/spec-packaging-closure.md#L58-L74) cover each Round 1 design acceptance item. This does not pre-accept implementation evidence: the slice must verify actual publisher signatures/checksums, actual file-access traces, real encoder fallback, signed-manifest chaining, and the owner memo.
+
+#### SDR-009 — proof ladder
+
+The session-0 surfaces and complete two-environment matrix are now explicit in [supervisor AC-S1 through AC-S4](https://github.com/scottconverse/civiccast/blob/397dad2c579328aa09479692606231253c172435/.agent-runs/native-windows/specs/spec-supervisor.md#L86-L98) and [installer D7](https://github.com/scottconverse/civiccast/blob/397dad2c579328aa09479692606231253c172435/.agent-runs/native-windows/specs/spec-installer-lifecycle.md#L55-L61).
+
+AC-S2's “DPAPI machine-scope (or file ACL)” alternative is false as a secrecy boundary. Microsoft states that with `CRYPTPROTECT_LOCAL_MACHINE`, any user on that computer can decrypt the data ([CryptProtectData](https://learn.microsoft.com/en-us/windows/win32/api/dpapi/nf-dpapi-cryptprotectdata)). Require the restrictive secret-file ACL in all cases, or choose a service-specific protection mechanism; then prove a non-admin who obtains the ciphertext still cannot decrypt it. The remote firewall request should be executed from a clean software-lab VM/Sandbox peer unless deferred to LPM, preserving the owner testing policy.
+
+#### SDR-010 — owner authority
+
+**CLOSED.** The [decision-state ladder and owner register](https://github.com/scottconverse/civiccast/blob/397dad2c579328aa09479692606231253c172435/.agent-runs/native-windows/specs/README.md#L8-L27), [playbook authority wording](https://github.com/scottconverse/civiccast/blob/397dad2c579328aa09479692606231253c172435/.agent-runs/native-windows/specs/POST-FABLE-PLAYBOOK.md#L3-L17), and [ADR owner-risk register](https://github.com/scottconverse/civiccast/blob/397dad2c579328aa09479692606231253c172435/docs/adr/0021-native-windows-runtime.md#L64-L77) preserve the owner boundary and parallel-ship decision.
+
+#### SDR-011 — batched prose/path reconciliation
+
+**PARTIALLY CLOSED, Minor/batched.** The process-stop and authority language is repaired. These exact Round 1 items remain:
+
+- [ADR lines 28-34](https://github.com/scottconverse/civiccast/blob/397dad2c579328aa09479692606231253c172435/docs/adr/0021-native-windows-runtime.md#L28-L34) still say “Zero porting cost; no fork,” while supervisor D2 requires Windows branches in `worker.py` and the strategy. Narrow this to “the media engine and graph model ran unmodified; native adapters remain owed.”
+- [ADR lines 60-62](https://github.com/scottconverse/civiccast/blob/397dad2c579328aa09479692606231253c172435/docs/adr/0021-native-windows-runtime.md#L60-L62) still assert footprint/failure-surface shrink before the promised measurement. Mark it a hypothesis.
+- [ADR lines 81-92](https://github.com/scottconverse/civiccast/blob/397dad2c579328aa09479692606231253c172435/docs/adr/0021-native-windows-runtime.md#L81-L92) still cite root paths `specs/...`, which do not exist. The valid root is `.agent-runs/native-windows/specs/...`; the explanatory parenthetical does not make the literal path resolvable.
+
+### Revision-introduced findings
+
+These are included in the partial statuses above rather than assigned a new audit round or verdict:
+
+1. **Active-product uninstall can orphan `ActiveRuntime`** (SDR-004; functional availability).
+2. **Machine-scope DPAPI is offered as a standalone secrecy alternative** (SDR-009; security).
+3. **`FILE_FLAG_FIRST_PIPE_INSTANCE` is labeled squat-proof although pre-creation denies the legitimate server** (SDR-002; local availability/security semantics).
+4. **Upgrade recovery explicitly tolerates post-backup/pre-stop write loss** (SDR-005; data integrity).
+
+### Round 2 ADR-0021 auditor position
+
+**Auditor half: DOES NOT PASS at `397dad2c579328aa09479692606231253c172435`.**
+
+The ADR's parallel-ship framing and owner-risk register are now correct, but it incorporates a guard that still lacks in-distro service refusal and a claims rule whose evidence inputs/negative controls remain forgeably incomplete. It also retains the “no fork” claim while its companion supervisor spec explicitly adds Windows worker/strategy branches. Those are not an adequate rung-3 record for owner merge.
+
+Smallest route to an auditor pass:
+
+1. close SDR-001's WSL-service lifetime/refusal path;
+2. close SDR-006's mandatory input/provenance/control schema before ws3 implementation;
+3. reconcile the ADR's remaining false/path claims;
+4. repair the material SDR-002/003/004/005/007/009 contracts above; and
+5. return the exact revised SHA for a scoped Round 3 design closure review.
+
+### Round 2 evidence and boundary
+
+- Resolved live `origin/program/native-windows` and the requested abbreviated SHA to exact commit `397dad2c579328aa09479692606231253c172435`; parent is exactly Round 1 subject `8fd3fa2fc9521e28cf4b0d3fc9897bea7a5d9c6a`.
+- Created a separate detached worktree and confirmed it remained clean.
+- Read the complete nine-document final state and the full `8fd3fa2f..397dad2c` diff; `git diff --check` passed.
+- Rechecked current WSL runtime behavior: the Windows keeper owns a `wsl.exe ... sleep infinity` child and can restart `civiccast.service`; the installed unit is enabled with `Restart=always`, confirming the service lifetime is not identical to the proposed keeper-held mutex lifetime.
+- Rechecked current worker command behavior: strategy success is an `os.write` result; worker application/failure is later log output with no acknowledgement channel.
+- Verified ADR literal `specs/...` paths do not exist while the `.agent-runs/native-windows/specs/...` paths do.
+- Consulted Microsoft primary documentation for named-pipe DACL/first-instance semantics, mutex abandonment, and machine-scope DPAPI.
+- PR #292 remained a separate WS2 thread. No WS2 source, verdict, CI result, or gate state was audited or changed.
+
+Confidence: static/source design review with adversarial state-machine counterexamples and primary-platform-contract verification. No implementation runtime was claimed because these remain specifications.
