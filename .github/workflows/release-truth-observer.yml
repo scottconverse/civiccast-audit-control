@@ -13,7 +13,7 @@ permissions:
 
 env:
   # Exact CivicCast commit providing the checker + manifest (WS1 slice).
-  CHECKER_PIN: 77ff390c713a541c25e0445748d80628147dc6f9
+  CHECKER_PIN: bcd43a8868c1ce71840dbcc4a42ac365dec6c092
   CIVICCAST: scottconverse/civiccast
 
 jobs:
