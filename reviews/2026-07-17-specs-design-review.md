@@ -1409,3 +1409,59 @@ Scott remains the tie-breaker. This review preserves both positions and grants n
 - Correctness/security, documentation, tests, and static QA were reviewed in a narrow audit-lite pass; no UI is present. Runtime is not applicable because no verifier implementation, trust-root file, authority record, or CI job exists in this design-only delta.
 - Confidence: exact-tree static design/governance review plus executable mutation models for history and authentication. No slice verdict, merge, owner acceptance, or gate advancement is claimed.
 - PR #292 remains only the dashboard pointer venue. The WS2 audit source, verdict, CI result, merge state, and gate state were not reviewed or changed in this Round 12 design-review work.
+
+## Round 13 - final SDR-006 closure assessment at `3ca1d44d`
+
+**Assessment date:** 2026-07-17
+
+**CivicCast subject:** `3ca1d44d4b6497d6167b95f2607e8dd26c94806f` on `program/native-windows`
+
+**Compared with:** Round 12 subject `465107f7e89e00d4e930df8926006b06f379dfe2`
+
+**Governance authority:** auditor-ratified `AUTHORITY_RECORDS.md` at audit-control commit `05f78d89787990a2355fa319a520ea6c821993fd`, blob `d6944d08d5870a60df5ae912aa8cfc62c2f4e047`
+
+**Review type:** exact closure review for the two Round-12 defects and a new-finding sweep of the v13 delta; not a slice audit, not a verdict, and no gate action
+
+**Execution posture:** `sandbox=danger-full-access`, `approval_policy=never`
+
+**Detached worktree:** `C:\Users\scott\Desktop\CODE\_audit-worktrees\civiccast-specs-r13-3ca1d44d` (clean)
+
+### Round 13 conclusion
+
+**SDR-006: CLOSED at the design-spec level.** V13 closes both remaining Round-12 defects. Create-only authority history is now an invariant over the first-parent chain: exactly one commit may touch the canonical record path, so a later modification, deletion, re-addition, or A-to-B-to-A restoration necessarily creates another touching commit and is rejected regardless of endpoint bytes. The authentication control is now isolating: create-only is disabled in that fixture, the record is introduced by an unsigned commit and later touched by an auditor-signed commit, and rejection must still come from authenticating the introducing commit rather than the latest signed touch.
+
+**The auditor half of ADR-0021's rung-3 review: PASS at `3ca1d44d4b6497d6167b95f2607e8dd26c94806f`.** The claims-evidence rule incorporated by ADR-0021 is now internally implementable without the provenance defects identified in SDR-006. This is the auditor half only; ADR-0021 remains Proposed and non-effective until Scott performs the owner half by accepting the register and merging it.
+
+**WS3 implementation: UNBLOCKED against the v13 claims spec.** Implementation may start from this exact design. The later WS3 slice audit must still falsify the real verifier and workflow at their supplied source SHA; this review does not pre-approve code, merge a slice, advance a gate, or authorize an unaccepted external trust root.
+
+**Severity rollup for the v13 delta:** Blocker 0; Critical 0; Major 0; Minor 0; Nit 0. The previously batched ordering/prose cleanup remains non-blocking implementation-document cleanup and does not reopen SDR-006.
+
+### Round-12 closure status
+
+| Round-12 defect | Round-13 status | Assessment |
+|---|---|---|
+| Endpoint-only create-only validation accepted A-to-B-to-A | **CLOSED** | D5 step 3 now counts path-touching commits on `main`'s first-parent history and requires exactly one. Final-byte equality is no longer part of the authority decision. D8 adds a distinct A-to-B-to-A expected-red control. |
+| Introducing-commit authentication control was non-isolating | **CLOSED** | D8 explicitly disables create-only in this mutation fixture. Correct introducing-commit authentication rejects the unsigned introduction; a latest-signed-commit mutant accepts it, so the fixture kills that mutant for the intended reason. |
+
+The history-count formulation is equivalent to the Round-12 per-commit invariant for a canonical first-parent path: after the one introducing touch, every modification, deletion, or restoration is another diff against its first parent and therefore violates the count. Implementation should compute this from first-parent tree differences rather than infer it from current bytes.
+
+### Independent falsification model
+
+The two mechanisms were modeled independently from the prose:
+
+- Touch history `[introduce-A]` accepted; `[introduce-A, modify-B, revert-A]` rejected.
+- With create-only disabled, a correct authenticator using `IntroducingRole=coder` rejected the record.
+- A deliberately broken authenticator using `LatestTouchRole=auditor` accepted the same record. The isolation fixture therefore distinguishes the correct verifier from the mutant instead of passing through a second guard.
+
+Observed model outputs: `single_touch_accepts=True`, `a_b_a_accepts=False`, `correct_intro_auth_accepts=False`, `mutant_latest_auth_accepts=True`, and `mutation_control_kills_latest_auth_mutant=True`.
+
+### New-finding sweep and evidence boundary
+
+- V13 is a direct child of the reviewed v12 subject and changes exactly one file: 19 insertions and 10 deletions in `spec-claims-evidence-rule.md`.
+- `git diff --check` passes. The file is BOM-free, its filter-aware working blob equals committed blob `1293fe8bcb3638ae1aa099d8af51c5d3955efe83`, and the detached worktree is clean.
+- The v13 source commit verifies against the pinned Claude coder key. Governance commit `05f78d89787990a2355fa319a520ea6c821993fd` verifies against the Codex auditor key, and its `AUTHORITY_RECORDS.md` blob is exactly the value pinned by v13.
+- No new functional defect, charter conflict, owner-decision capture, or unverifiable acceptance criterion was found in the v13 delta. The owner-acceptance register still correctly keeps the trust-root pin, authority-record format, and ADR merge non-authorizing until Scott accepts them.
+- Runtime execution is not applicable to this design-only delta because the verifier, generated trust-root/workflow contract, authority records, and CI wiring remain WS3 implementation deliverables. Confidence is exact-tree static review plus executable mutation modeling; the WS3 slice audit remains the runtime/code gate.
+- PR #292 remains only the dashboard pointer venue. The WS2 audit source, verdict, CI result, merge state, and gate state were not reviewed or changed in Round 13.
+
+Scott remains owner and tie-breaker. This record supplies the auditor half of the design review; it grants no merge, release, or gate authority.
