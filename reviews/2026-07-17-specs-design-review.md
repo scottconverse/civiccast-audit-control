@@ -1329,3 +1329,83 @@ The grammar contract is also internally inconsistent: D6 says the quoted regex e
 - Engineering, documentation, test, QA, and non-visual UX/operability lenses were applied serially with an adversarial authority-history pass. No verifier implementation, generated trust-root file, authority record, or runtime CI proof exists in this design-only delta.
 - Confidence: exact-tree static design/governance review with executable Git object, signature, encoding, history-contract, and regex checks. No slice verdict, merge, owner acceptance, or gate advancement is claimed.
 - PR #292 remains only the dashboard pointer venue. The WS2 audit source, verdict, CI result, merge state, and gate state were not reviewed or changed in this Round 11 design-review work.
+
+## Round 12 - SDR-006 closure assessment at `465107f7`
+
+**Assessment date:** 2026-07-17
+
+**CivicCast subject:** `465107f7e89e00d4e930df8926006b06f379dfe2` on `program/native-windows`
+
+**Compared with:** Round 11 subject `8fcc3cee7226f30b9a122206754344f366ff79f2`
+
+**Governance authority:** auditor-ratified `AUTHORITY_RECORDS.md` at audit-control commit `05f78d89787990a2355fa319a520ea6c821993fd`, blob `d6944d08d5870a60df5ae912aa8cfc62c2f4e047`
+
+**Review type:** exact Round-11 acceptance-criterion closure, v12 new-finding sweep, and explicit stopping-rule assessment; not a slice audit, not a verdict, and no gate action
+
+**Execution posture:** `sandbox=danger-full-access`, `approval_policy=never`
+
+**Detached worktree:** `C:\Users\scott\Desktop\CODE\_audit-worktrees\civiccast-specs-r12-465107f7` (clean)
+
+### Round 12 conclusion
+
+**SDR-006: PARTIALLY CLOSED.** V12 closes the regex-plus-prohibition grammar, full pin-shape requirement, exact authority-record-v1 field syntax, canonical evidence-path derivation plus byte identity, explicit introducing-commit authentication order, and no-retroactive-authority requirement. Those closures are substantive and align with the ratified format.
+
+The history algorithm and its negative control are not yet sound. Step 3 defines create-only as equality between the introducing blob and the blob at `main` HEAD. That accepts an authority path changed from A to B and later restored to A, although authority-record-v1 says **any** post-creation modification invalidates the record. D8 group 15's “later signed touch” also does not isolate introducing-commit authentication: if the touch changes the authority blob, the create-only check makes the fixture red even when a deliberately broken verifier authenticates only the latest signed commit. Both are direct defects in the delivered Round-11 closures, not newly invented derivative completeness preferences.
+
+**The auditor half of ADR-0021's rung-3 review: FAIL at `465107f7e89e00d4e930df8926006b06f379dfe2`.** ADR-0021 incorporates a claims authority rule whose stated create-only algorithm can accept a forbidden modify-then-revert history and whose authentication mutation can survive the proposed red control.
+
+**WS3 implementation: NOT UNBLOCKED against v12.** Building the known-unsound history algorithm would predictably move the same defect into code and force the slice audit to reject it. The owner may override this design hold, but the auditor does not recommend proceeding against v12 as written.
+
+**Severity rollup for the v12 delta:** Blocker 0; Critical 0; Major 2 (endpoint-only create-only check; non-isolating authentication control); Minor 2; Nit 0.
+
+### Round-11 closure status
+
+| Round-11 requirement | Round-12 status | Assessment |
+|---|---|---|
+| Grammar = segment regex plus prohibition list | **CLOSED** | D6 now states plainly that regex alone admits `..` and applies the complete ratified prohibition list afterward. |
+| Full 40-hex pin schema behavior | **CLOSED** | The full ratifying commit/blob remain pinned, and D8 group 15 makes abbreviated commits and malformed blob hashes malformed with exit 2. |
+| Exact structured field syntax | **CLOSED** | D5 names every required bold-label field and makes missing/unparseable fields malformed. |
+| Canonical evidence path plus byte binding | **CLOSED** | The evidence path is derived from the same source/claim/control triple, with no independent path input, and the fetched blob must match. |
+| Introducing-commit authentication | **PARTIALLY CLOSED** | The ordered algorithm correctly says to authenticate the commit that first introduced the path. Its D8 control can pass for the wrong reason if the later signed touch modifies the record. |
+| Create-only history | **NOT CLOSED** | Comparing only introduction and current HEAD misses modification followed by restoration. V1 invalidates any intervening change. |
+| No retroactive authority | **CLOSED at design level** | Evidence must pre-exist the authority record and D8 names the expected-red case. Implementation should use commit ancestry/first-parent order, never author timestamps. |
+
+### Executable counterexamples
+
+A deliberately broken verifier was modeled with two bugs/guards: it authenticates the latest signed commit instead of the introducing commit, then compares only introduction and HEAD blobs.
+
+- Wrong-role introduction A followed by auditor-signed touch B returned `False`. The proposed fixture is red even though authentication is broken; therefore it does not prove the authentication check.
+- Wrong-role introduction A inherited unchanged through a later auditor-signed unrelated/empty commit returned `True`. This is the isolating laundering fixture D8 needs.
+- History `[A, B, A]` produced `intro_equals_head=True` and `post_creation_change_exists=True`. V12 step 3 accepts the final equality while the ratified create-only rule rejects the history.
+
+### Smallest material closure
+
+1. Replace step 3's endpoint comparison with a history invariant: on the canonical first-parent chain from the introducing commit through the pinned audit-control HEAD, the path must exist with the introducing blob at every commit. Any different blob, deletion, or re-addition invalidates it; the existing canonical duplicate/path checks continue to reject alternate paths.
+2. Change the authentication control to a wrong-role introduction followed by an auditor-signed commit that leaves the authority path unchanged (an unrelated or empty signed commit). Mutation-test it by replacing introducing-commit authentication with latest-commit authentication; that mutant must make the fixture fail.
+3. Add a separate A→B→A expected-red history so create-only cannot be implemented as endpoint equality.
+
+**Blast radius:** authority-history traversal and two D8 fixtures only. Field parsing, grammar, trust-root pinning, evidence-path binding, producer floors, and the broader claims graph need no redesign.
+
+### Stopping-rule positions for owner review
+
+**Coder position (verbatim from the Round-12 request):** “If round 12 closes these four and surfaces further NEW derivative items (rather than defects in these closures), I will table the residue for the owner with both positions recorded verbatim, recommending ws3 proceed against v12 with your SLICE AUDIT as the gate that re-examines all of it against real code.”
+
+**Auditor position:** “The condition for that recommendation is not met. Endpoint-only create-only validation and the non-isolating laundering fixture are defects in the four delivered closures themselves. Proceeding would knowingly implement an algorithm and proof that the current counterexamples already falsify. WS3 should remain held for the narrow contract correction above, or Scott may explicitly override this design hold and accept the predictable slice-audit risk.”
+
+Scott remains the tie-breaker. This review preserves both positions and grants no merge, gate, release, or implementation authority.
+
+**Escalation recommendation:** another full audit-team pass is unnecessary. Either make the narrow history/control correction or place this exact disagreement before Scott for owner tie-break.
+
+### Batched Minor
+
+- D8 group 15 appears before group 14. Renumber during implementation-document cleanup; it does not affect the proof graph.
+- D6 still places explanatory prose inside the regex code span, and D3 retains one singular floor sentence. Both are non-blocking prose cleanup.
+
+### New-finding sweep and evidence boundary
+
+- V12 changes exactly one file: 30 insertions and 6 deletions in the claims spec. The owner register, ADR-0021, and all non-claims execution specs are unchanged.
+- `git diff --check` passes. The claims spec is BOM-free, and its filter-aware working blob equals the committed blob.
+- The v12 source commit verifies locally against the Claude coder key. The pinned governance commit verifies against the Codex auditor key, and its `AUTHORITY_RECORDS.md` blob matches the v12 pin exactly.
+- Correctness/security, documentation, tests, and static QA were reviewed in a narrow audit-lite pass; no UI is present. Runtime is not applicable because no verifier implementation, trust-root file, authority record, or CI job exists in this design-only delta.
+- Confidence: exact-tree static design/governance review plus executable mutation models for history and authentication. No slice verdict, merge, owner acceptance, or gate advancement is claimed.
+- PR #292 remains only the dashboard pointer venue. The WS2 audit source, verdict, CI result, merge state, and gate state were not reviewed or changed in this Round 12 design-review work.
