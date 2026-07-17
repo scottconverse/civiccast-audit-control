@@ -628,3 +628,99 @@ The ADR's own prose/path defects are closed, but it adopts two companion contrac
 - Review method: the five audit lenses were applied serially because this was a targeted design-record append, with adversarial proof-contract review layered over them. UI/visual runtime is not present in this document-only scope; operator-visible uninstall/error behavior was reviewed as UX.
 - Confidence: static/source design review with state-machine counterexamples and primary-platform-contract verification. No implementation, service-session, hardware, clean-machine, or gate proof is claimed.
 - PR #292 remains only the dashboard pointer venue. No WS2 source, verdict, CI result, or gate state was reviewed or changed.
+
+## Round 4 — closure assessment at `c7022920`
+
+**Assessment date:** 2026-07-17
+
+**CivicCast subject:** `c7022920d4e56c100287a78f4c2a233236a0667e` on `program/native-windows`
+
+**Compared with:** Round 3 subject `82416e0577e4f13d67b1b9b430016a195b1c1aa9`
+
+**Review type:** exact Round-3 acceptance-criterion closure review and v4-delta sweep; not a slice audit, not a verdict, and no gate action
+
+**Execution posture:** `sandbox=danger-full-access`, `approval_policy=never`
+
+**Detached worktree:** `C:\Users\scott\Desktop\CODE\_audit-worktrees\civiccast-specs-r4-c7022920` (clean)
+
+### Round 4 conclusion
+
+V4 genuinely closes six of the seven Round-3 remainders. The dual-runtime guard, worker command semantics, uninstall matrix, upgrade freeze/rollback matrix, migration controls, and firewall proof venue now meet the smallest closures previously stated. The four SDRs already closed in Round 3 remain closed.
+
+The revised claims rule also makes an important correction: definitions remain in the source commit while results resolve at verification time, so the impossible self-referential commit/run fixed point is gone. `SDR-006` nevertheless remains **PARTIALLY CLOSED** because the two result-resolution modes still lack source/authority bindings that an implementation can enforce correctly, and the displayed schema omits data that its completeness checks require.
+
+| Status | Count |
+|---|---:|
+| CLOSED | 10 |
+| PARTIALLY CLOSED | 1 |
+| NOT CLOSED | 0 |
+
+**The auditor half of ADR-0021's rung-3 review does not pass at `c7022920d4e56c100287a78f4c2a233236a0667e`.** ADR-0021 explicitly ships the claims-evidence rule with the architectural decision, and that rule still has a material proof-authority defect. **WS3 implementation is not unblocked against v4.** Its next revision should close `SDR-006` before the verifier schema, workflow contract, and external resolver are implemented.
+
+### Closure matrix
+
+| Finding | Round 4 status | Assessment against the Round-3 acceptance-to-close bullets |
+|---|---|---|
+| SDR-001 | **CLOSED** | A2 unreadable/timeout is now explicitly non-authorizing, enters `blocked_probe_unavailable`, retries, and never starts transmission. AC9 supplies the requested both-direction keeperless-live-WSL control. |
+| SDR-002 | **CLOSED** | Unchanged from Round 3. The explicit named-pipe/global-object security and pre-creation degraded-path contract remains intact. |
+| SDR-003 | **CLOSED** | All four actual verbs now have explicit delivery/replay semantics: `reload`/`swap` converge at least once, `caption` is at most once and never replayed, and `stop` is exactly-once-effective with observed process exit as ground truth. The named failure controls are parameterized across all four. |
+| SDR-004 | **CLOSED** | The lifecycle matrix is split into the four requested ownership cases—inactive removal, active-with-survivor transfer, active-sole selector clear, and refused/cancelled transfer—with survivor operability required where applicable. It no longer contradicts D1. |
+| SDR-005 | **CLOSED** | Upgrade now acquires the shared D7a interlock before drain, all native start paths must honor it, step 6 is an explicitly read-only/no-worker maintenance health mode, and release occurs only at commit. The matrix now includes both injected rollback-restore failure and concurrent manual/SCM start attempts. |
+| SDR-006 | **PARTIALLY CLOSED** | The fixed-point loop, typed claim inputs, fixture declaration, control failure semantics, and self-reference/forgery mutations are materially improved. Three enforceability gaps remain in D2/D3/D7: PR source-SHA identity, canonical external authority, and the absent machine source for expected jobs/shards and collection floor. |
+| SDR-007 | **CLOSED** | AC5 now asserts start-path refusal and zero writes; AC5b separately proves the final comparison catches an interlock bypass. AC5c–e enumerate the exact operator-added-config, mutation-during-hash, and reused-identity controls requested in Round 3. |
+| SDR-008 | **CLOSED** | Unchanged from Round 3; no design acceptance item regressed. Implementation proof remains owed by its future slice. |
+| SDR-009 | **CLOSED** | AC-S1 now binds firewall proof to a second clean class-6 Sandbox/VM peer and explicitly leaves physical-network/device proof to LPM, matching the owner testing boundary. |
+| SDR-010 | **CLOSED** | Unchanged. Decision-state headers and the owner-acceptance register continue to leave owner decisions with Scott. |
+| SDR-011 | **CLOSED** | Unchanged. ADR premise scoping, measurement-dependent claims, and repo-relative path corrections remain intact. |
+
+### Remaining SDR-006 design findings
+
+#### 1. Same-run mode binds the wrong SHA on pull-request workflows
+
+[Claims D3 says `GITHUB_SHA` equals the commit being verified](https://github.com/scottconverse/civiccast/blob/c7022920d4e56c100287a78f4c2a233236a0667e/.agent-runs/native-windows/specs/spec-claims-evidence-rule.md#L39-L51). That is false for GitHub Actions `pull_request` events: GitHub defines `GITHUB_SHA` as the PR merge-branch commit, while the source head is `github.event.pull_request.head.sha`. The current repository demonstrates the distinction: PR #292 resolves to head `90c408d08ae534d939f1755443c85ff77dcc3529` and merge ref `abcc1abde7b8206ec7685480b7466e149b58e9ab`.
+
+Consequence: a verifier built literally from v4 can bind a passing result to a synthetic merge commit while labeling it as evidence for the source head, or reject a correctly checked-out head because runtime `GITHUB_SHA` differs. This is a functional proof-identity defect, not wording.
+
+Smallest closure: define `source_sha` by event and bind it to the exact checkout. For `pull_request`, use and explicitly check `github.event.pull_request.head.sha`; if merge-result testing is also required, record `merge_sha` separately and never substitute it for the audited source SHA. Add a PR fixture/control where head and merge SHA differ and prove the wrong identity is rejected.
+
+#### 2. External evidence is located, but not canonically authorized
+
+[External-evidence mode](https://github.com/scottconverse/civiccast/blob/c7022920d4e56c100287a78f4c2a233236a0667e/.agent-runs/native-windows/specs/spec-claims-evidence-rule.md#L52-L62) calls audit-control “append-only, owner-controlled” and resolves a record “by SHA via the audit-control remote.” The authoritative protocol says the opposite trust nuance: audit-control is a **process boundary, not a credential boundary**; the shared PAT does not authenticate actors and history is inspectable but not protected. Verdict authority works because a canonical path, exact source SHA, exact audit-control commit/blob, structured fields, thread identity, repository origin, and fail-closed lookup are validated—not because an arbitrary file is present in the repository.
+
+V4 specifies none of those external-record selection/authority rules. It does not define a canonical path/schema, uniqueness, accepted reviewer/owner authority, exact governance commit/blob, repository-origin validation, or fork/wrong-branch/ambiguous-record rejection. A coder-authored record pushed with shared credentials could therefore satisfy the written rule without independent review.
+
+Smallest closure: define one canonical external-evidence path and structured schema keyed by source SHA and claim/control ID; bind it to a named 40-hex audit-control commit and blob; validate the exact `scottconverse/civiccast-audit-control` origin and commit object; require the structured independent reviewing authority/attestation appropriate to the confidence class; reject zero, duplicate, forked, wrong-SHA, wrong-blob, or unauthoritative records with exit 2. Reuse the completion hook's canonical-validation rigor rather than only its repository name.
+
+#### 3. Completeness checks have no declared machine source
+
+D3 requires the run's job set to match expected jobs/matrix shards and the JUnit count to meet a “recorded floor,” but [D2's committed definition shape](https://github.com/scottconverse/civiccast/blob/c7022920d4e56c100287a78f4c2a233236a0667e/.agent-runs/native-windows/specs/spec-claims-evidence-rule.md#L23-L38) declares neither the expected job/shard set nor a collection floor. D7 only says the verifier depends on “the test job,” which does not make all other required jobs complete before a whole-workflow comparison. D2 also embeds the schema inside the `verifier` role while D5 describes `verifier` and `schema` as separate typed roles, leaving the promised missing-role mutation structurally ambiguous.
+
+Smallest closure: put `collection_floor` and the required job/matrix set in the committed typed definition, or define one deterministic derivation from the bound workflow and test manifest. Make the verifier depend on every producer it claims to assess (or narrow the claimed set to its completed dependencies). Reconcile `schema` as either its own required role or a named member of `verifier`, then mutate the actual schema shape in the acceptance test.
+
+### V4 new-finding sweep by document
+
+- `spec-dual-runtime-guard.md`: no new material finding; its A2 asymmetry is now conservative and testable.
+- `spec-supervisor.md`: no new material finding; per-verb replay and clean-peer venue are internally consistent. Implementation still owes the platform/runtime proofs already named.
+- `spec-installer-lifecycle.md`: no new material finding; D3 and the proof matrix now tell one upgrade/rollback story, and the four uninstall rows are consistent.
+- `spec-migration-contract.md`: no new material finding; the interlock is primary and final comparison is explicitly defense in depth.
+- `spec-claims-evidence-rule.md`: the three material gaps above are introduced or exposed by the v4 trust-model rewrite and remain within `SDR-006`.
+- Unchanged `spec-packaging-closure.md`, `POST-FABLE-PLAYBOOK.md`, specs `README.md`, and ADR-0021 were checked for regression against the Round-3 closure record; no new material issue was found. The owner-acceptance register remains controlling.
+
+No standalone wording finding is raised. Residual version-label/prose nits remain batched and non-blocking under the owner's severity calibration.
+
+### Round 4 ADR-0021 auditor position
+
+**Auditor half: FAIL at `c7022920d4e56c100287a78f4c2a233236a0667e`.** The native-runtime architecture and all non-claims SDRs now meet this review's design bar, but ADR-0021 expressly ships the claims-evidence rule. Passing the ADR while its proof-authority mechanism can bind the wrong PR SHA or accept an under-specified external record would contradict the ADR's own honesty boundary. Scott's owner-merge half remains separate and has not occurred through this review.
+
+**WS3 implementation: NOT UNBLOCKED against v4.** Close the three `SDR-006` bullets above first. They change the verifier's core data model, workflow dependencies, and trust resolver; deferring them would predictably force a redesign after implementation.
+
+### Round 4 evidence and boundary
+
+- Resolved `origin/program/native-windows` and the requested abbreviated SHA to exact commit `c7022920d4e56c100287a78f4c2a233236a0667e`; its sole parent is Round-3 subject `82416e0577e4f13d67b1b9b430016a195b1c1aa9`.
+- Created a fresh detached worktree, verified exact `HEAD`, origin, and clean state, read the five-file v4 diff and final changed documents, and reconciled every Round-3 acceptance-to-close bullet. `git diff --check` passed.
+- Rechecked the unchanged companion documents and ADR against the Round-3 record; no closed SDR regressed.
+- Falsified the unconditional `GITHUB_SHA` premise against both [GitHub's official pull-request event contract](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#pull_request) and this repository's live PR #292 head/merge refs.
+- Reconciled external-evidence authority against audit-control `AUDIT_PROTOCOL.md` sections 2 and 8 and the charter's independent-review/attestation boundary.
+- Applied the five review lenses serially with an adversarial proof-contract pass. There is no UI/visual runtime in this document-only delta; operator-visible degraded, uninstall, maintenance, and recovery states were reviewed as UX contracts.
+- Confidence: static/source design review with exact-SHA binding, state-machine reconciliation, a live Git ref counterexample, and primary GitHub platform documentation. No implementation, CI execution, service-session, clean-machine, hardware, LPM, slice verdict, or gate proof is claimed.
+- PR #292 remains only the dashboard pointer venue. No WS2 source, verdict, CI result, merge state, or gate state was reviewed or changed.
