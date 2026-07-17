@@ -487,3 +487,144 @@ Smallest route to an auditor pass:
 - PR #292 remained a separate WS2 thread. No WS2 source, verdict, CI result, or gate state was audited or changed.
 
 Confidence: static/source design review with adversarial state-machine counterexamples and primary-platform-contract verification. No implementation runtime was claimed because these remain specifications.
+
+## Round 3 — closure assessment at `82416e05`
+
+**Assessment date:** 2026-07-17
+
+**CivicCast subject:** `82416e0577e4f13d67b1b9b430016a195b1c1aa9` on `program/native-windows`
+
+**Compared with:** Round 2 subject `397dad2c579328aa09479692606231253c172435`
+
+**Review type:** exact Round-2 acceptance-criterion closure review; not a slice audit, not a verdict, and no gate action
+
+**Execution posture:** `sandbox=danger-full-access`, `approval_policy=never`
+
+**Detached worktree:** `C:\Users\scott\Desktop\CODE\_audit-worktrees\civiccast-specs-r3-82416e05` (clean)
+
+### Round 3 conclusion
+
+V3 closes the Windows named-object security contract, the packaging contract, the owner-authority boundary, and the ADR's remaining false/path prose. It does **not** close every material Round-2 acceptance item.
+
+| Status | Count |
+|---|---:|
+| CLOSED | 4 |
+| PARTIALLY CLOSED | 7 |
+| NOT CLOSED | 0 |
+
+The remaining items are functional or proof-contract defects under the owner's severity calibration: a native guard probe error still authorizes transmission; worker restart replay is undefined for two command classes; installer and migration acceptance rows contradict their normative decisions; the upgrade freeze lacks an enforceable start-path/read-only-health contract; the claims design has an exact-SHA/run-ID self-reference loop as well as incomplete non-CI provenance and mandatory-input mechanics; and the firewall proof venue remains unbound to the owner's software-lab/LPM boundary.
+
+**The auditor half of ADR-0021's rung-3 review still does not pass at `82416e05`.** The ADR incorporates the dual-runtime and claims contracts, and those retain material gaps. **WS3 implementation is not unblocked against the v3 claims spec:** `SDR-006` still changes the verifier schema and trust model. This design result is independent of WS2's separate audit/gate state.
+
+### Closure matrix
+
+| Finding | Round 3 status | What v3 genuinely closes | Exact remainder |
+|---|---|---|---|
+| SDR-001 | **PARTIALLY CLOSED** | WSL refusal now runs in the in-distro service's own start path, fails closed on unreadable host authority, is rechecked on service start/restart, and has direct-start plus keeper-crash controls. Abandoned mutex ownership no longer authorizes native without A2. | Native's decision table still says an A2 probe error/timeout starts transmission. That is the exact fail-open path Round 2 identified: a keeperless but still-running WSL service plus an unavailable A2 probe can overlap native. |
+| SDR-002 | **CLOSED** | Explicit pipe and global-object security descriptors, local/NETWORK boundary, service-only create-instance right, first-instance detection semantics, degraded recovery, client server-identity check, and real pre-creation control are all specified. | No Round-2 design acceptance item remains. Implementation must realize “read/write” as individual pipe rights that do not accidentally regrant `FILE_CREATE_PIPE_INSTANCE`; the spec already identifies that constraint. |
+| SDR-003 | **PARTIALLY CLOSED** | The Windows worker pipe now has a versioned request/result envelope, command IDs, applied/error acknowledgement, bounded idempotent redelivery, timeout surfacing, reconnect, and desired-state replay. | Restart replay names graph reload and role only. Caption cues and `stop` are real commands in `parse_control_line`, but their post-restart/lost-ack policy is unspecified. The Round-2 acceptance criterion explicitly required replay policy for reload/swap/caption/stop. |
+| SDR-004 | **PARTIALLY CLOSED** | D1 blocks active-product removal until an acknowledged transfer, clears the selector for sole-product removal, preserves inactive-product ownership, and requires operability of the survivor. | The lifecycle proof matrix still says every cross-uninstall leaves the selector untouched. That is impossible for active-product transfer and sole-active removal, and gives the implementer two incompatible acceptance contracts. |
+| SDR-005 | **PARTIALLY CLOSED** | Backup follows stop/drain, is verified before mutation, the journal binds the requested identities/outcomes, and rollback-restore failure halts stopped with recovery material preserved. | “The freeze holds” is asserted but no start-path interlock or maintenance/read-only health mode defines how it survives operator/SCM starts. Step 6 starts the service while the freeze is said to remain held, without saying how writes stay blocked. D3 also claims injected restore failure is a proof-matrix row, but the matrix contains no such row. |
+| SDR-006 | **PARTIALLY CLOSED** | Mandatory input categories, exact blob/SHA binding, expected job/matrix completeness, collection floor, artifact-backed controls, fail-on-missing/stale behavior, and the Round-2 mutations are substantially present. | A committed registry cannot pre-record the CI `run_id`/artifact for its own final SHA; committing those results changes the SHA, so D2/D3/D7 form a self-reference loop. The flat `inputs` list also cannot mechanically infer an omitted claim-specific fixture/config, and non-CI artifacts have no trusted workflow, signer/attestation, or other immutable execution provenance. |
+| SDR-007 | **PARTIALLY CLOSED** | PostgreSQL-versus-app freeze wording, the shared D7a maintenance record, runtime-read-set inventory, and generation/owner journaling close the three principal design gaps. | AC5 still expects a mid-migration start/write to be detected only by the final check, contradicting D1's requirement that the interlock prevent the start/write. The requested controls for operator-added config, mutation during full hashing, and reused identities with changed content are not enumerated; the stale-hash test is not a substitute for each failure mode. |
+| SDR-008 | **CLOSED** | Unchanged from Round 2. | No Round-1/2 design acceptance item remains; implementation evidence is still owed by the slice. |
+| SDR-009 | **PARTIALLY CLOSED** | Restrictive secret-file ACL is now mandatory; machine-scope DPAPI is correctly demoted to optional defense in depth. | AC-S1 still says only “a remote-device request.” It does not bind that request to a clean software-lab VM/Sandbox peer or explicitly defer it to LPM, as Round 2 required and the owner testing policy constrains. |
+| SDR-010 | **CLOSED** | Unchanged from Round 2; owner decisions remain explicit and unsettled until owner acceptance. | No material acceptance item remains. |
+| SDR-011 | **CLOSED** | The ADR now scopes the no-port result to the engine/platform seam, marks footprint/failure-surface reduction as an unasserted hypothesis pending measurement, and uses resolvable repo paths. | No Round-2 item remains. Residual “v2” section labels in v3 documents are batched wording only and do not change action. |
+
+### Detailed acceptance checks
+
+#### SDR-001 — bidirectional exclusion
+
+The [in-service placement in guard D4](https://github.com/scottconverse/civiccast/blob/82416e0577e4f13d67b1b9b430016a195b1c1aa9/.agent-runs/native-windows/specs/spec-dual-runtime-guard.md#L37-L56) and [new AC3b/AC3c controls](https://github.com/scottconverse/civiccast/blob/82416e0577e4f13d67b1b9b430016a195b1c1aa9/.agent-runs/native-windows/specs/spec-dual-runtime-guard.md#L108-L129) directly fix the keeper-lifetime defect. The abandoned-mutex rule is also correctly conservative.
+
+The closure is incomplete because [D3 still authorizes native start on any probe error or timeout](https://github.com/scottconverse/civiccast/blob/82416e0577e4f13d67b1b9b430016a195b1c1aa9/.agent-runs/native-windows/specs/spec-dual-runtime-guard.md#L25-L36). A2 is the lifetime proof when the keeper is absent or its mutex is abandoned. If A2 cannot be read while the WSL transmitter remains alive, “start + probe-degraded” permits the forbidden double-transmit state.
+
+Smallest closure: make unreadable/timeout A2 non-authorizing before native transmission (a bounded blocked/retry state is acceptable), and add a control with a live keeperless WSL service plus an injected A2 timeout that proves native never starts.
+
+#### SDR-002 — supervisor pipe and global objects
+
+**CLOSED.** [Supervisor D7](https://github.com/scottconverse/civiccast/blob/82416e0577e4f13d67b1b9b430016a195b1c1aa9/.agent-runs/native-windows/specs/spec-supervisor.md#L82-L104) now states the principals, remote boundary, narrow create-instance authority, first-instance failure behavior, degraded recovery, and client identity verification. [AC-N2](https://github.com/scottconverse/civiccast/blob/82416e0577e4f13d67b1b9b430016a195b1c1aa9/.agent-runs/native-windows/specs/spec-supervisor.md#L143-L150) is a real pre-creation test. This matches Microsoft's distinction between named-pipe data rights and `FILE_CREATE_PIPE_INSTANCE`, and between first-instance detection and availability loss.
+
+#### SDR-003 — acknowledged worker commands
+
+The [new envelope](https://github.com/scottconverse/civiccast/blob/82416e0577e4f13d67b1b9b430016a195b1c1aa9/.agent-runs/native-windows/specs/spec-supervisor.md#L28-L41) is the right architecture: acknowledgement follows application, IDs make same-command redelivery idempotent, and timeout becomes a channel error.
+
+The current parser includes `swap`, `reload`, `caption`, and `stop`, but v3's restart replay defines only current graph reload plus role. A caption is time-sensitive and cannot safely inherit generic “desired state”; a stop is terminal and cannot safely inherit graph/role replay. Smallest closure: state the at-most/exactly-once and reconnect policy for each of the four verbs, including whether an applied-but-unacknowledged caption is replayed and whether unacknowledged stop suppresses restart, then make the named lost-ack/restart controls parameterized across those policies.
+
+#### SDR-004 — uninstall ownership
+
+[Installer D1](https://github.com/scottconverse/civiccast/blob/82416e0577e4f13d67b1b9b430016a195b1c1aa9/.agent-runs/native-windows/specs/spec-installer-lifecycle.md#L10-L31) closes the orphaned-selector behavior. The remaining defect is the contradictory [Cross-uninstall matrix row](https://github.com/scottconverse/civiccast/blob/82416e0577e4f13d67b1b9b430016a195b1c1aa9/.agent-runs/native-windows/specs/spec-installer-lifecycle.md#L78-L93).
+
+Smallest closure: split the row into inactive-product removal (selector unchanged), active product with survivor (successful acknowledged transfer, then removal), active sole product (selector cleared), and refused/cancelled transfer (nothing removed). Every successful survivor row must still prove actual start/transmit operability.
+
+#### SDR-005 — upgrade recovery
+
+[Installer D3](https://github.com/scottconverse/civiccast/blob/82416e0577e4f13d67b1b9b430016a195b1c1aa9/.agent-runs/native-windows/specs/spec-installer-lifecycle.md#L37-L58) now orders backup correctly and defines the rollback-stop boundary. It does not yet define the mechanism that makes the stated freeze true. A stopped service is not a durable interlock against an explicit start, and starting it for health at step 6 needs a specified maintenance/read-only mode if the freeze remains held.
+
+Smallest closure: acquire the shared D7a interlock (or an equivalently defined upgrade interlock) before drain, require every native start path to honor it, run a read-only health gate while writers remain refused, and release only on commit. Add the promised injected rollback-restore-failure row plus a concurrent manual/SCM start attempt to the actual matrix.
+
+#### SDR-006 — claims-evidence authority
+
+[Claims D2-D5](https://github.com/scottconverse/civiccast/blob/82416e0577e4f13d67b1b9b430016a195b1c1aa9/.agent-runs/native-windows/specs/spec-claims-evidence-rule.md#L23-L64) incorporates most of the Round-2 checklist. Three trust properties remain unresolved:
+
+1. **The exact-SHA/same-run registry is self-referential.** D2 says the committed entry contains `source_sha`, `run_id`, `run_attempt`, and `head_sha`; D7 says it consumes JUnit from the same run. The run ID and artifact do not exist until CI runs the commit. Committing them afterward creates a new HEAD that no longer equals the artifact's `head_sha`. A committed control artifact that claims its own final containing SHA has the same fixed-point problem. AC1 therefore has no specified realizable steady state.
+2. A schema can assert that a list contains declared paths, but it cannot infer an omitted claim-specific fixture/config unless the entry declares typed required roles or a trusted per-claim manifest defines them. The displayed registry shape has no such role mapping. D5 should mutate every mandatory class, including `where`, code, schema, generator, and fixture/config—not only test/verifier/workflow.
+3. A file that reports its own command, timestamp, exit, and environment is durable but not immutable execution provenance. For CI-safe controls, the trusted run can supply provenance. For controls CI cannot rerun—including the first-scope session-0 claim—the charter permits attestation as integrity/provenance while retaining raw observations and review. V3 instead says “not attestations” and defines no replacement trust root.
+
+Smallest closure: remove committed result metadata from the self-referential side of the contract. For example, let a committed claim definition bind expected source inputs and a trusted resolver, then let the verifier consume the current workflow's runtime run/attempt context or an external immutable evidence record keyed by the already-existing source SHA. Use typed required-input roles (with an explicit mechanism for claim-specific dependencies), and require each control artifact to chain either to the trusted CI run/attempt or to a signed/attested evidence envelope whose limitations remain explicit. Add self-reference, missing-category, and forged-untrusted-artifact controls.
+
+#### SDR-007 — migration coherence
+
+[Migration D1 and D4](https://github.com/scottconverse/civiccast/blob/82416e0577e4f13d67b1b9b430016a195b1c1aa9/.agent-runs/native-windows/specs/spec-migration-contract.md#L12-L51) now state the correct freeze and inventory sources. The acceptance section was not reconciled: [AC5](https://github.com/scottconverse/civiccast/blob/82416e0577e4f13d67b1b9b430016a195b1c1aa9/.agent-runs/native-windows/specs/spec-migration-contract.md#L71-L86) still treats a mid-migration service start/write as something the final comparison detects. Under D1, the start itself must be refused and no write may occur.
+
+Smallest closure: rewrite AC5 to assert interlock refusal/no write, then separately corrupt/bypass the interlock to prove the final no-write check is defense in depth. Add explicit controls for operator-added config outside the bootstrap list, source mutation during full hashing, and resume after identity reuse with changed content.
+
+#### SDR-008 — packaging closure
+
+**CLOSED, unchanged.** The design remains complete; no implementation proof is pre-accepted.
+
+#### SDR-009 — session-0 proof ladder
+
+The [credential rule](https://github.com/scottconverse/civiccast/blob/82416e0577e4f13d67b1b9b430016a195b1c1aa9/.agent-runs/native-windows/specs/spec-supervisor.md#L110-L125) correctly treats the ACL as mandatory and machine-scope DPAPI as non-authoritative defense in depth. The firewall row still needs a venue consistent with the owner testing policy: clean VM/Sandbox peer for software-lab proof, or explicit LPM deferral for real-world proof. “Remote-device request” alone leaves the required confidence class and allowed venue ambiguous.
+
+#### SDR-010 — owner authority
+
+**CLOSED, unchanged.** The decision-state and owner-acceptance register remain intact.
+
+#### SDR-011 — ADR accuracy and paths
+
+**CLOSED.** [ADR-0021's falsified-premise text](https://github.com/scottconverse/civiccast/blob/82416e0577e4f13d67b1b9b430016a195b1c1aa9/docs/adr/0021-native-windows-runtime.md#L26-L49) now distinguishes the unchanged engine/graph path from the owed transport adapter. [Accepted costs](https://github.com/scottconverse/civiccast/blob/82416e0577e4f13d67b1b9b430016a195b1c1aa9/docs/adr/0021-native-windows-runtime.md#L51-L66) mark footprint/failure-surface reduction as measurement-dependent, and the standing-position links resolve from the repo root.
+
+### Revision-introduced findings
+
+These are folded into the SDR statuses above rather than assigned a verdict or gate action:
+
+1. **Installer D1 versus matrix conflict** (`SDR-004`, functional): D1 changes/clears ownership where required; the matrix still demands selector untouched for every cross-uninstall.
+2. **Promised rollback-failure proof row is absent** (`SDR-005`, proof gap): prose calls it a matrix row, but the matrix omits it.
+3. **Migration interlock versus AC5 conflict** (`SDR-007`, functional): D1 prevents the start/write; AC5 expects the write and detects it later.
+4. **Non-CI provenance lane was removed rather than completed** (`SDR-006`, proof integrity): a self-described artifact hash does not establish where/by whom it ran, and “not attestations” discards the charter's integrity/provenance option without a replacement.
+
+One additional material issue was newly identified in Round 3 but inherited from v2 rather than introduced by the v3 diff: **the committed exact-SHA/JUnit-run metadata loop in SDR-006 has no realizable fixed point.** Round 2 missed this interaction; this record corrects that miss rather than hiding it.
+
+The remaining “Decisions (v2)” labels in v3 documents are batched Minor wording under the owner decision. They do not affect this closure result.
+
+### Round 3 ADR-0021 auditor position
+
+**Auditor half: DOES NOT PASS at `82416e0577e4f13d67b1b9b430016a195b1c1aa9`.**
+
+The ADR's own prose/path defects are closed, but it adopts two companion contracts that are still materially incomplete: dual-runtime exclusion permits native start when its WSL lifetime probe errors, and the claims rule has a self-referential exact-SHA/run binding plus incomplete mandatory inputs and non-CI provenance. Owner merge remains the other half; this review does not substitute for it.
+
+**WS3 implementation: NOT UNBLOCKED against v3.** Close `SDR-006` before implementing the verifier so its schema and trust root do not have to be redesigned after code exists. This statement addresses design readiness only and does not inspect or alter the separate WS2 audit/gate.
+
+### Round 3 evidence and boundary
+
+- Resolved `origin/program/native-windows` and the requested abbreviated SHA to exact commit `82416e0577e4f13d67b1b9b430016a195b1c1aa9`; its sole parent is the Round-2 subject `397dad2c579328aa09479692606231253c172435`.
+- Created a separate detached worktree, confirmed `HEAD` and a clean state, read all nine final documents, and read the complete six-file v3 diff. `git diff --check` passed.
+- Rechecked the actual worker command grammar: `swap`, `reload`, `caption`, and `stop` are all commands; thus generic graph/role replay does not answer the Round-2 caption/stop criterion.
+- Verified every ADR-referenced spike/spec path resolves and the three stale ADR forms from Round 2 no longer occur.
+- Reconciled the charter, owner severity decision, owner testing policy, audit protocol, and the exact Round-2 acceptance-to-close bullets.
+- Rechecked Microsoft primary documentation: named-pipe default DACL/data/create-instance semantics, `FILE_FLAG_FIRST_PIPE_INSTANCE` failure behavior, and machine-scope DPAPI. The v3 supervisor corrections align with those platform contracts.
+- Review method: the five audit lenses were applied serially because this was a targeted design-record append, with adversarial proof-contract review layered over them. UI/visual runtime is not present in this document-only scope; operator-visible uninstall/error behavior was reviewed as UX.
+- Confidence: static/source design review with state-machine counterexamples and primary-platform-contract verification. No implementation, service-session, hardware, clean-machine, or gate proof is claimed.
+- PR #292 remains only the dashboard pointer venue. No WS2 source, verdict, CI result, or gate state was reviewed or changed.
