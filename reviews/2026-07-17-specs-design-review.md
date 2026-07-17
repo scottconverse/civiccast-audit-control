@@ -1023,3 +1023,96 @@ Batch closure: restore valid UTF-8 text without double-encoding and add a lightw
 - Applied engineering, UX, documentation, test, and QA lenses serially with an adversarial proof-contract pass. There is no UI/runtime implementation in this document-only delta; QA used exact source/workflow state and executable Git signature/blob checks.
 - Confidence: exact-tree design review plus source-signature/blob verification and primary platform-contract reconciliation. No workflow-contract implementation, CI execution, trust-root file, external evidence record, slice verdict, merge, or gate proof is claimed.
 - PR #292 remains only the dashboard pointer venue. No WS2 source, verdict, CI result, merge state, or gate state was reviewed or changed.
+
+## Round 8 — SDR-006 closure assessment at `1f75c806`
+
+**Assessment date:** 2026-07-17
+
+**CivicCast subject:** `1f75c806e710f3668d4dafea1f0c800854a46fe2` on `program/native-windows`
+
+**Compared with:** Round 7 subject `014722f9903dcd390ed718b61b00cadc71e52401`
+
+**Review type:** exact Round-7 `SDR-006` closure review and full-rewrite new-finding sweep; not a slice audit, not a verdict, and no gate action
+
+**Execution posture:** `sandbox=danger-full-access`, `approval_policy=never`
+
+**Detached worktree:** `C:\Users\scott\Desktop\CODE\_audit-worktrees\civiccast-specs-r8-1f75c806` (clean)
+
+### Round 8 conclusion
+
+**SDR-006: PARTIALLY CLOSED.** The v8 rewrite closes the literal job-cycle and skip bypass, makes producer artifacts and checkout attestations explicit, adds the missing typed input roles, binds authority to the exact selected signed commit, makes evidence records create-only, makes the trust root non-authorizing pending owner acceptance, restores clean ASCII text, and adds most of the requested mutations. Those are substantive closures.
+
+Three functional contract gaps remain: the authority-record key collides when one claim has multiple external controls; the one global JUnit floor can hide an empty successful producer; and the product spec declares a new canonical audit-control authority format that the authoritative governance protocol does not yet define or authorize. D8 also omits the expected-red cases for these edges and drops the earlier per-role omission control.
+
+**The auditor half of ADR-0021's rung-3 review: FAIL at `1f75c806e710f3668d4dafea1f0c800854a46fe2`.** ADR-0021 still incorporates a claims-evidence contract whose external authority key is not unique and whose multi-producer execution floor is not fail-closed per producer.
+
+**WS3 implementation: NOT UNBLOCKED against v8.** The remaining changes affect two persisted schemas and one cross-repository governance contract. They should be fixed before code and records depend on them.
+
+### Round-7 item status
+
+| Round-7 item | Round-8 status | Assessment |
+|---|---|---|
+| `SDR-006-D` producer completeness and attestation | **CLOSED** | `workflow_job_inventory` covers every static job, `expected_producers` is a per-producer mapping, the verifier is forbidden, `needs:` equality is explicit, and every producer gets named JUnit/meta artifacts plus checkout attestation. |
+| `SDR-006-E` exact external authority | **PARTIALLY CLOSED** | Exact selected-commit signature verification, create-only evidence, five structured fields, typed roles, and owner-gated trust root are present. The canonical authority path omits `control_id`, and the authority format has no authoritative audit-control protocol/schema yet. |
+| `SDR-006-F` expected-red coverage | **PARTIALLY CLOSED** | D8 covers the named Round-7 skip, metadata, artifact, create-only, wrong-blob, role, and unaccepted-root cases. It omits authority-key collision, per-producer zero/below-floor, authority-protocol/schema drift, and missing/duplicate typed-role cases. |
+| `SDR-006-G` skipped verifier | **CLOSED** | D3/D7 require `if: always()`, explicit evaluation of every producer result, and red fixtures for skipped/failed producers. This matches GitHub's documented `needs` behavior. |
+| `SDR-006-M1` mojibake | **CLOSED** | The rewritten file is BOM-free ASCII with zero detected mojibake sequences. |
+
+### Material findings and smallest closure
+
+#### SDR-006-H — authority records are not unique per external control
+
+[D4 permits multiple controls per claim](https://github.com/scottconverse/civiccast/blob/1f75c806e710f3668d4dafea1f0c800854a46fe2/.agent-runs/native-windows/specs/spec-claims-evidence-rule.md#L93-L100), and [D5 creates one evidence record per `(source_sha, claim_id, control_id)`](https://github.com/scottconverse/civiccast/blob/1f75c806e710f3668d4dafea1f0c800854a46fe2/.agent-runs/native-windows/specs/spec-claims-evidence-rule.md#L102-L113). The authority path is only `authority/<claim-id>/<source-sha>.md`, while its body has one singular `control_id`, `evidence_commit`, and `evidence_blob` tuple.
+
+The counterexample is mechanical: controls `service-prelogin` and `security-log` for the same `session0` claim have distinct evidence paths but both resolve to the identical authority path `authority/session0/<same-source-sha>.md`. One create-only canonical file cannot independently bind both singular control/evidence tuples.
+
+Smallest closure: key authority records by all three logical identifiers, preferably `authority/<source-sha>/<claim-id>/<control-id>.md`, and require exact path/body agreement for each. Alternatively define a typed, unique list of control/evidence tuples in one claim authority record, but that is a larger parser/schema surface. Add two-controls-one-claim, swapped-control, duplicate-control, and path/body-control mismatch expected-red cases.
+
+**Blast radius:** authority paths, uniqueness checks, review-writing workflow, external resolver, and all claims with more than one non-CI control.
+
+#### SDR-006-I — one global JUnit floor is not a per-producer proof
+
+[Each producer now has its own artifact/meta mapping](https://github.com/scottconverse/civiccast/blob/1f75c806e710f3668d4dafea1f0c800854a46fe2/.agent-runs/native-windows/specs/spec-claims-evidence-rule.md#L60-L79), but [the verifier still checks one `junit_collection_floor`](https://github.com/scottconverse/civiccast/blob/1f75c806e710f3668d4dafea1f0c800854a46fe2/.agent-runs/native-windows/specs/spec-claims-evidence-rule.md#L85-L88). The current producers have materially different suite sizes: the engine job has an explicit floor of 11, the unit job contains separate floors of 5 and 2 within a much larger suite, and the NATS job currently has no JUnit floor. A single aggregate floor can be met by the large unit artifact while another successful producer uploads a valid but empty JUnit file.
+
+Artifact presence and job success therefore do not prove that each producer executed its owed tests. Claim-node lookup only protects registered nodes; it does not close a producer whose suite silently disappears before its claims are registered.
+
+Smallest closure: move `junit_collection_floor` into every `expected_producers.<job>` entry (and represent expected matrix shards there if/when the matrix expands). The verifier checks each artifact independently. Add expected-red cases where one producer has zero tests or falls below its own floor while every other producer exceeds theirs.
+
+**Blast radius:** workflow-contract schema, producer artifact parser, matrix/shard expansion, D8 fixtures, and CI collection-floor maintenance.
+
+#### SDR-006-J — the product repo cannot unilaterally create canonical audit-control authority
+
+[D5 calls `authority/...` an extension of the existing verdict format](https://github.com/scottconverse/civiccast/blob/1f75c806e710f3668d4dafea1f0c800854a46fe2/.agent-runs/native-windows/specs/spec-claims-evidence-rule.md#L114-L125), but audit-control's authoritative `AUDIT_PROTOCOL.md`, `AUDIT_GATE.md`, and `CHARTER.md` define only canonical verdicts under `verdicts/`; none defines an authority-record path, schema, authoring responsibility, signature rule, or lifecycle. CivicCast is explicitly not allowed to redefine audit-control governance.
+
+Until the governance repo adopts this format, an `authority/...` file is merely a proposed file, not canonical authority. Trust-root owner acceptance covers keys and rotation, but the owner register does not separately accept the new authority-record protocol or say which actor creates those records.
+
+Smallest closure: make the audit-control authority protocol/schema an explicit WS3 cross-repo deliverable, with canonical path including `control_id`, structured fields, create/update policy, authoring role, and exact-signature rule accepted in audit-control. Pin its schema/protocol version or blob in the product trust root, and keep external claims non-authorizing until both that governance change and the key root are owner-accepted. Add missing/wrong-schema and unapproved-protocol expected-red cases.
+
+**Owner boundary:** creating a new canonical record class in the authoritative governance repository and assigning its signing/authoring authority require Scott's acceptance; the CivicCast product spec can propose but not confer that authority.
+
+**Blast radius:** audit-control protocol/gate, owner acceptance, trust-root schema, auditor workflow, external resolver, and historical record compatibility.
+
+### Batched Minor
+
+- D8 group 3 calls `schema` a typed role even though D2 binds the registry schema inside the `verifier` role, and it says `fixture` where the declared role is `fixtures`. This is test-contract wording, not a separate proof bypass if every listed file is blob-bound. Reconcile the names with the actual schema during the next revision.
+
+### New-finding sweep and convergence
+
+- The v8 delta is exactly two documents: the full claims-spec rewrite and one owner-register row. No non-claims execution spec or ADR body changed.
+- GitHub and local SSH verification both identify the source commit as the Claude coder key. `git diff --check` passes.
+- The Round-7 mojibake is genuinely closed: no BOM and no detected double-encoding sequences.
+- The Round-7 `if: always()` closure agrees with GitHub's primary workflow documentation; the `needs` context exposes `success`, `failure`, `cancelled`, and `skipped` for the explicit per-producer check.
+- The new findings are schema-key and authority-boundary defects, not wording calibration disputes.
+
+**Convergence recommendation:** another tightly scoped design revision should genuinely converge. The closures are mechanical: add `control_id` to the authority key, make floors per producer, make the authority format an explicit owner-approved audit-control contract, and add their red controls. I do not recommend treating these as a sustained coder/auditor judgment disagreement yet. If the coder disputes any of those three counterexamples, preserving both positions and escalating to Scott is the correct protocol; otherwise one surgical round is cheaper than an owner tie-break.
+
+### Round 8 evidence and boundary
+
+- Fetched `origin/program/native-windows`, resolved both it and the requested short SHA to exact commit `1f75c806e710f3668d4dafea1f0c800854a46fe2`, and confirmed its sole parent is Round-7 subject `014722f9903dcd390ed718b61b00cadc71e52401`.
+- Created a fresh detached worktree and verified exact `HEAD`, expected origin, and clean state. The complete delta is 203 insertions/171 deletions across the claims spec and specs README.
+- Read the full rewritten contract, owner register, unchanged ADR-0021, current three-producer workflow, Round-7 acceptance bullets, and authoritative audit-control governance files.
+- Reproduced the two-control authority-key collision with concrete paths and reconciled the global floor against the current producer-specific floor values.
+- Verified the source commit signature against audit-control `keys/allowed_signers`; GitHub also reports the commit Verified.
+- Applied engineering, UX, documentation, test, and QA lenses serially with an adversarial proof-contract pass. No runtime implementation exists yet; no CI workflow or authority-record parser was claimed or executed.
+- Confidence: exact-tree static design review, executable Git signature/encoding/path checks, current-workflow reconciliation, and primary GitHub workflow semantics. No claims verifier, workflow contract, trust-root file, audit-control authority protocol, runtime record, slice verdict, merge, or gate proof is claimed.
+- PR #292 remains only the dashboard pointer venue. No WS2 source, verdict, CI result, merge state, or gate state was reviewed or changed.
