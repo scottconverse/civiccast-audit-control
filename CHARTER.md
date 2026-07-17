@@ -17,6 +17,15 @@ ADR-0003 (2026-05-08) rejected native Windows deployment (Option B) because it "
 
 ADR-0003's own footer requires supersession by a new ADR. That ADR (WS-2 below) must record both falsified premises **and** honestly account the costs Option B was rejected for - Windows service management, path handling, a separate installer surface, an expanded CI matrix - as now-accepted costs, plus the session-0 obligations in section 5.
 
+**End-state (amended 2026-07-17, owner decision `decisions/2026-07-17-parallel-ship.md`):**
+ship alongside, feature-diverge, sunset on evidence. The WSL and native
+products are both released from one repository (two installers, shared core,
+both in the release-truth manifest). WSL enters maintenance mode (bugfixes
+only, rc-line owned); all new features land native-only; WSL retires on
+adoption evidence by owner call, never by scheduled cutover. The dual-runtime
+guard remains mandatory before side-by-side installs; migration machinery is
+a permanent operator-facing upgrade path, not a one-time event.
+
 **Honesty boundary:** the architectural *direction* is evidence-backed. The *implementation* proofs - session-0 hardware access, Postgres restore, dual-runtime exclusion, clean-machine packaging, long-duration Windows playout - are open and enumerated in section 7. Nothing in this charter claims them in advance.
 
 ---
