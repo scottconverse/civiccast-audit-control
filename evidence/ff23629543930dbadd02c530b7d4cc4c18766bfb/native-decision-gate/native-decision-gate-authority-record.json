@@ -1,0 +1,91 @@
+{
+  "source_sha": "ff23629543930dbadd02c530b7d4cc4c18766bfb",
+  "claim_id": "native-decision-gate",
+  "control_id": "native-decision-gate-authority-record",
+  "command": [
+    "SWAPS=4 INTERVAL=2 python worker.py demo-graph.json",
+    "hard-kill the worker after 6 seconds, reap it, then immediately relaunch for 6 seconds",
+    "launch three concurrent worker.py processes with SWAPS=8 and distinct outputs"
+  ],
+  "environment": {
+    "machine_class": "Windows 11 Pro developer box; machine name not recorded in the raw decision-gate document",
+    "os": "Windows 11 Pro 10.0.26200",
+    "confidence_class": "3 - developer-machine runtime",
+    "tools": {
+      "CPython": "3.12.13",
+      "gstreamer-bundle": "1.28.5",
+      "ffmpeg": "version not recorded in the raw observation"
+    }
+  },
+  "timestamps": {
+    "captured": "2026-07-17T04:54:14Z"
+  },
+  "result": "pass",
+  "output_hashes": {
+    "committed_raw_observation_blob": "cfabddd3b3045006af1c4b995277aeaa42f4b4ff"
+  },
+  "inputs": [
+    {
+      "role": "prose",
+      "path": ".agent-runs/native-windows/spike-decision-gate/evidence/native-engine-gate.md",
+      "blob_id": "cfabddd3b3045006af1c4b995277aeaa42f4b4ff"
+    },
+    {
+      "role": "code[0]",
+      "path": "civiccast/egress/gst/worker.py",
+      "blob_id": "f00dba1163e24e501184ed517d3228a8293ae70f"
+    },
+    {
+      "role": "code[1]",
+      "path": "civiccast/egress/gst/engine.py",
+      "blob_id": "43d165930ec3c217e1344a5fef8a74f544ab5d92"
+    },
+    {
+      "role": "code[2]",
+      "path": "civiccast/egress/gst/graph.py",
+      "blob_id": "6f65e4269dad8fd09ad3fb88ae93a4d62d1b7e14"
+    },
+    {
+      "role": "test",
+      "path": "tests/egress/test_gst_engine_wsl.py",
+      "blob_id": "0cab182389fb89d65350201dab666fdf62ed4978"
+    },
+    {
+      "role": "verifier[0]",
+      "path": "scripts/policy/check_claims_evidence.py",
+      "blob_id": "2fc636c76fd7a0bf5d75c97aef9efe8ea43947d2"
+    },
+    {
+      "role": "verifier[1]",
+      "path": "docs/claims/claims-schema.json",
+      "blob_id": "9f8b8f5203a2b7d942190e2065649cd72a1094b2"
+    },
+    {
+      "role": "workflow",
+      "path": ".github/workflows/ci-test.yml",
+      "blob_id": "8e2d9cf20409ec984570f16f3f1bc03c0f28eb82"
+    },
+    {
+      "role": "workflow_contract",
+      "path": "docs/claims/workflow-contract.yaml",
+      "blob_id": "05051b40d56f1d8a248c39666b7b978db5462094"
+    },
+    {
+      "role": "trust_root",
+      "path": "docs/claims/trust-root.yaml",
+      "blob_id": "cd452e36f65223405cd6e33ce65efa3c42a639bc"
+    },
+    {
+      "role": "generator",
+      "path": "scripts/policy/emit_producer_meta.py",
+      "blob_id": "ed37496a372ccefcd54fb79cc67cd5772c0753a6"
+    },
+    {
+      "role": "fixtures[0]",
+      "path": "civiccast/egress/gst/graph.py",
+      "blob_id": "6f65e4269dad8fd09ad3fb88ae93a4d62d1b7e14"
+    }
+  ],
+  "origin_machine": "Windows 11 Pro developer box (raw observation does not name the host)",
+  "raw_observation_ref": "CivicCast .agent-runs/native-windows/spike-decision-gate/evidence/native-engine-gate.md at ff23629543930dbadd02c530b7d4cc4c18766bfb, blob cfabddd3b3045006af1c4b995277aeaa42f4b4ff; original run record introduced at 3b4b24511c711fcc023cbf865f412687a7bf4e19 and corrected at 115531dfa622d7b60469cd7d9cb818f273c770de"
+}
