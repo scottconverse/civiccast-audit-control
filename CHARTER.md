@@ -19,6 +19,10 @@ ADR-0003's own footer requires supersession by a new ADR. That ADR (WS-2 below) 
 
 **Honesty boundary:** the architectural *direction* is evidence-backed. The *implementation* proofs - session-0 hardware access, Postgres restore, dual-runtime exclusion, clean-machine packaging, long-duration Windows playout - are open and enumerated in section 7. Nothing in this charter claims them in advance.
 
+**End state - amended 2026-07-17 by owner decision** (`decisions/2026-07-17-parallel-ship.md`): this program does **not** end by replacing the WSL product. The WSL product and the native Windows product are **both released and offered** - one repository, shared Python core, **two installers**, both tracked by the release-truth manifest. Neither replaces the other by decree. The WSL line enters maintenance mode (bugfixes only, owned by the rc-line coder); all new features, including the owner's next-version feature suite, land in the native line only. Migration is pulled by value, not pushed by deprecation. The WSL line retires only when adoption and field data say stations no longer need it - an owner call made on evidence, never a scheduled cutoff.
+
+Wherever this charter's original text reads as migrate-then-deprecate, **the parallel-ship decision governs.** Section 6 (dual-runtime exclusion) is unchanged by that decision and remains mandatory: the guard must be proven before any machine can have both products installed.
+
 ---
 
 ## 2. Target architecture
@@ -109,7 +113,9 @@ Hazard: during any period where both the WSL install and the native install exis
 
 **Installer lifecycle proof obligations:** fresh install, upgrade, repair, uninstall, reboot, logout, and rollback behavior, with state removal or preservation matching the documented contract.
 
-**Migration (right-sized for a beta-scale install base - the LPM program):** backup -> native install -> restore, with the WSL line as named rollback. No generalized in-place migration framework. Inventory beyond the database: media, configuration, certificates/secrets (incl. local CA keys), NATS state, Windows path conversion, service identity, runtime ownership transfer, tested rollback. (Database roles/permissions and extensions travel with the restore contract, section 5.) Keep the WSL line available until the native path reaches equivalent operational proof.
+**Migration (right-sized for a beta-scale install base - the LPM program):** backup -> native install -> restore, with the WSL line as named rollback. No generalized in-place migration framework. Inventory beyond the database: media, configuration, certificates/secrets (incl. local CA keys), NATS state, Windows path conversion, service identity, runtime ownership transfer, tested rollback. (Database roles/permissions and extensions travel with the restore contract, section 5.)
+
+**Migration framing - amended 2026-07-17** (`decisions/2026-07-17-parallel-ship.md`): the WSL line is **not** retired once the native path reaches equivalent operational proof. Both products stay released and offered. The migration machinery is therefore the **voluntary upgrade path** an operator may choose - not a one-time cutover event - and must stay releasable as an operator-facing feature rather than being treated as disposable program scaffolding.
 
 ## 8. Program sequence (rolls up sections 3-7)
 
@@ -122,7 +128,9 @@ Hazard: during any period where both the WSL install and the native install exis
 | 4 | Dual-runtime exclusion guard (section 6) | Guard implemented and proven **before any WSL machine receives a side-by-side native install**; bidirectional refusal demonstrated |
 | 5 | Native supervisor + media-worker decision gate under session 0 | Gate evidence selects Python or Rust; all section 7 slice steps green on two pristine machines |
 | 6 | Hardware + live-peer + multichannel + soak proofs | DeckLink physical, NDI relay, live multicast/unicast UDP, SRT/RTMP/RTSP peers, 3-channel, 24h soak |
-| 7 | LPM cutover + rollback rehearsal | Cutover and rollback both executed and evidenced, incl. the post-activation data boundary (section 6) |
+| 7 | LPM voluntary upgrade + rollback rehearsal | Upgrade and rollback both executed and evidenced, incl. the post-activation data boundary (section 6) |
+
+**Final-gate framing - amended 2026-07-17** (`decisions/2026-07-17-parallel-ship.md`): row 7 was written as "LPM cutover" under the superseded migrate-then-deprecate end state. Completing row 7 advances **one station** to the native product; it does **not** retire the WSL product and is not the end of its support. WSL sunset is a separate, evidence-based owner call with no scheduled date, per section 1.
 
 macOS is a **separate platform program** - the element inventory re-runs against the official macOS runtime in about an hour, but packaging, signing/notarization, launchd, and hardware validation are their own charter. Do not fold it into this one.
 
