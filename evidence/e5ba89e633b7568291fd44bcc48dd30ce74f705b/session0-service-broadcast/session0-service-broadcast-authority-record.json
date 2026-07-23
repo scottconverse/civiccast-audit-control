@@ -1,0 +1,100 @@
+{
+  "source_sha": "e5ba89e633b7568291fd44bcc48dd30ce74f705b",
+  "claim_id": "session0-service-broadcast",
+  "control_id": "session0-service-broadcast-authority-record",
+  "command": [
+    "SWAPS=60 INTERVAL=10 python worker.py demo-graph.json",
+    "run the worker through an NSSM LocalSystem auto-start service, reboot, and delay interactive logon"
+  ],
+  "environment": {
+    "hostname": "NVIDEABLACKWELL",
+    "os": "Windows 11 Pro 10.0.26200",
+    "service_identity": "LocalSystem, session 0",
+    "confidence_class": "3 - developer-machine runtime with session-0 service execution",
+    "tools": {
+      "CPython": "3.12.13",
+      "gstreamer-bundle": "1.28.5",
+      "NSSM": "version not recorded in the raw observation"
+    }
+  },
+  "timestamps": {
+    "start": "2026-07-17T06:17:12.310Z",
+    "end": "2026-07-17T06:27:23.130Z",
+    "first_interactive_logon": "2026-07-17T06:23:26.130Z"
+  },
+  "result": "pass",
+  "exit_status": 0,
+  "output_hashes": {
+    "committed_raw_observation_blob": "d18c4203a072ac388cf4b1769d36ac75e0fd692a",
+    "committed_graph_blob": "cacb14138ad758ca15c17efbb8c3aee37e18fa55"
+  },
+  "inputs": [
+    {
+      "role": "prose",
+      "path": ".agent-runs/native-windows/spike-session0/evidence/session0-service-broadcast.md",
+      "blob_id": "d18c4203a072ac388cf4b1769d36ac75e0fd692a"
+    },
+    {
+      "role": "code[0]",
+      "path": "civiccast/egress/gst/worker.py",
+      "blob_id": "e8a9b621f18d4134ffc93ffe34247dcfdb3ae1d0"
+    },
+    {
+      "role": "code[1]",
+      "path": "civiccast/egress/gst/engine.py",
+      "blob_id": "43d165930ec3c217e1344a5fef8a74f544ab5d92"
+    },
+    {
+      "role": "code[2]",
+      "path": "civiccast/egress/gst/graph.py",
+      "blob_id": "6f65e4269dad8fd09ad3fb88ae93a4d62d1b7e14"
+    },
+    {
+      "role": "code[3]",
+      "path": "civiccast/egress/gst/control.py",
+      "blob_id": "63b3f891b5bca20d34be2094a8122103d7e5004e"
+    },
+    {
+      "role": "test",
+      "path": "tests/egress/test_gst_engine_wsl.py",
+      "blob_id": "0cab182389fb89d65350201dab666fdf62ed4978"
+    },
+    {
+      "role": "verifier[0]",
+      "path": "scripts/policy/check_claims_evidence.py",
+      "blob_id": "9b7ab9a7b8808109b3b2c6eb3ab2257e180fa24b"
+    },
+    {
+      "role": "verifier[1]",
+      "path": "docs/claims/claims-schema.json",
+      "blob_id": "9f8b8f5203a2b7d942190e2065649cd72a1094b2"
+    },
+    {
+      "role": "workflow",
+      "path": ".github/workflows/ci-test.yml",
+      "blob_id": "8e2d9cf20409ec984570f16f3f1bc03c0f28eb82"
+    },
+    {
+      "role": "workflow_contract",
+      "path": "docs/claims/workflow-contract.yaml",
+      "blob_id": "05051b40d56f1d8a248c39666b7b978db5462094"
+    },
+    {
+      "role": "trust_root",
+      "path": "docs/claims/trust-root.yaml",
+      "blob_id": "79b8c37676a05253aff44d75406648b10097a529"
+    },
+    {
+      "role": "generator",
+      "path": "scripts/policy/emit_producer_meta.py",
+      "blob_id": "ed37496a372ccefcd54fb79cc67cd5772c0753a6"
+    },
+    {
+      "role": "fixtures[0]",
+      "path": ".agent-runs/native-windows/spike-session0/evidence/demo-graph.json",
+      "blob_id": "cacb14138ad758ca15c17efbb8c3aee37e18fa55"
+    }
+  ],
+  "origin_machine": "NVIDEABLACKWELL",
+  "raw_observation_ref": "Historical CivicCast session-0 observation and demo graph remain byte-identical at product SHA e5ba89e633b7568291fd44bcc48dd30ce74f705b, blobs d18c4203a072ac388cf4b1769d36ac75e0fd692a and cacb14138ad758ca15c17efbb8c3aee37e18fa55; run record introduced at 115531dfa622d7b60469cd7d9cb818f273c770de; narrowed re-attestation preserves the historical observation while rebinding the post-WS5 worker.py and accepted trust-root inputs"
+}
