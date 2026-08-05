@@ -1,0 +1,51 @@
+{
+  "source_sha": "78c4f0a0bc7dc78bee05ec456b3376e5ec8b0613",
+  "claim_id": "native-decision-gate",
+  "control_id": "native-decision-gate-authority-record",
+  "command": [
+    "Launch a fresh Windows Sandbox with the exact product worktree mounted read-only; install CPython 3.12.13 and gstreamer-bundle==1.28.5 inside the disposable guest.",
+    "Generate the decision graph from the recorded graph shape with only its filesink output redirected to a writable guest-local path; run current worker.py with SWAPS=4 INTERVAL=2 and require WORKER_RESULT with error None and teardown_clean True.",
+    "Start current worker.py with SWAPS=60 INTERVAL=1, confirm non-empty MPEG-TS output after five seconds, force-terminate that live process, then launch a separate current worker.py with SWAPS=2 INTERVAL=2 and require a clean WORKER_RESULT and non-empty output.",
+    "Start three concurrent current worker.py processes, each with its own generated graph and output path, with SWAPS=4 INTERVAL=2; require every retained stdout receipt to report error None and teardown_clean True."
+  ],
+  "environment": {
+    "machine_class": "Fresh Windows Sandbox guest on a Windows 10 Pro host; virtualized clean developer environment",
+    "os": "Windows Sandbox guest 10.0.26100.0",
+    "confidence_class": "3 - clean virtualized developer runtime; corroborates the historical physical-developer-machine observation but does not itself claim a physical-hardware run",
+    "tools": {
+      "CPython": "3.12.13",
+      "gstreamer-bundle": "1.28.5",
+      "Windows Sandbox": "Windows 11 22H2-or-later restart-persistent guest"
+    }
+  },
+  "timestamps": {
+    "captured": "2026-08-05T15:51:09.8227184Z"
+  },
+  "result": "pass",
+  "output_hashes": {
+    "hot_swap_stdout_sha256": "9ef3f847593c5a07bfb5c54f41ff9120b31794c10de8ef47cf027c0714470a04",
+    "relaunch_stdout_sha256": "bbc53b271a33a4d17998c36c41b79993acad4ae06e4d3672aebef920e1ac7408",
+    "channel_0_stdout_sha256": "e6cd9624fc0395dc7f1f4d5dc0455a58832ec96e1ff458a9371522d66834182e",
+    "channel_1_stdout_sha256": "e6cd9624fc0395dc7f1f4d5dc0455a58832ec96e1ff458a9371522d66834182e",
+    "channel_2_stdout_sha256": "e6cd9624fc0395dc7f1f4d5dc0455a58832ec96e1ff458a9371522d66834182e",
+    "transcript_sha256": "4cd6da1bcb18e6cabcf5b36605cede74fdb3cdfa5a5645654d390ebca0ed55a3"
+  },
+  "inputs": [
+    {"role": "prose", "path": ".agent-runs/native-windows/spike-decision-gate/evidence/native-engine-gate.md", "blob_id": "cfabddd3b3045006af1c4b995277aeaa42f4b4ff"},
+    {"role": "code[0]", "path": "civiccast/egress/gst/worker.py", "blob_id": "7986a134b352424d9c0672f8c53a08507365d511"},
+    {"role": "code[1]", "path": "civiccast/egress/gst/engine.py", "blob_id": "ce845e19a14bbd5fbbb721fdb9146cedaa18e183"},
+    {"role": "code[2]", "path": "civiccast/egress/gst/graph.py", "blob_id": "476e7ec4311fd2a1929ac8663ddc2f62167f08ad"},
+    {"role": "code[3]", "path": "civiccast/egress/gst/control.py", "blob_id": "d082b89d08277a4408824aa507703226d5afaac9"},
+    {"role": "code[4]", "path": "civiccast/egress/gst/audio_tap.py", "blob_id": "338db038b43c0881bf41bee42a6d80b9864c32cc"},
+    {"role": "test", "path": "tests/egress/test_gst_engine_wsl.py", "blob_id": "4b57651d394a87c3233d754b8cd5df78e067ef77"},
+    {"role": "verifier[0]", "path": "scripts/policy/check_claims_evidence.py", "blob_id": "9b7ab9a7b8808109b3b2c6eb3ab2257e180fa24b"},
+    {"role": "verifier[1]", "path": "docs/claims/claims-schema.json", "blob_id": "9f8b8f5203a2b7d942190e2065649cd72a1094b2"},
+    {"role": "workflow", "path": ".github/workflows/ci-test.yml", "blob_id": "a97e7bd198e5de2afae4b51d449f56fd8551ee0f"},
+    {"role": "workflow_contract", "path": "docs/claims/workflow-contract.yaml", "blob_id": "05051b40d56f1d8a248c39666b7b978db5462094"},
+    {"role": "trust_root", "path": "docs/claims/trust-root.yaml", "blob_id": "90fd520a7e62324e41bc6c8aa5d2b969406e255f"},
+    {"role": "generator", "path": "scripts/policy/emit_producer_meta.py", "blob_id": "ed37496a372ccefcd54fb79cc67cd5772c0753a6"},
+    {"role": "fixtures[0]", "path": "civiccast/egress/gst/graph.py", "blob_id": "476e7ec4311fd2a1929ac8663ddc2f62167f08ad"}
+  ],
+  "origin_machine": "Windows Sandbox guest 8E378389-DC6C-4 on the current owner workstation",
+  "raw_observation_ref": "Current-source clean-Sandbox rerun retained locally under C:\\Users\\scott\\Desktop\\Code\\.civiccast-sandbox-preflight\\decision-full-attempt2. The hot-swap, forced-kill pre-output, clean relaunch, and three concurrent current-worker behaviors completed before the harness's post-run PowerShell Process.ExitCode receipt bug; the five retained stdout receipts each contain a clean WORKER_RESULT. worker.py at the bound blob returns 0 when that result has error None, then calls os._exit(code). This record corroborates the historical native-engine-gate.md observation while stating its clean-Sandbox virtual-machine boundary."
+}
